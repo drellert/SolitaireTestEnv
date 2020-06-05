@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "downlevelIteration": true,
+        "sourceMap": true,
+        "lib": [
+            "es2020",
+            "DOM"
+        ]
+    },
+    "files": [
+        "card-thing.ts"
+    ]
+}
