@@ -1,4 +1,5 @@
 import * as read from 'readline-sync';
+import { isNullOrUndefined } from 'util';
 
 const suits = <const>["Hearts", "Spades", "Clubs", "Diamonds"];
 type Suit = typeof suits[number];
@@ -93,10 +94,15 @@ const isSuitOpposite = (compare: Suit, to: Suit) => {
 };
 
 class Card {
-    constructor(public suit: Suit, public value: Value) {}
+    public visible: boolean;
+
+    constructor(public suit: Suit, public value: Value) {
+        this.visible = false;
+    }
 
     public toString(): string {
-        return `(${this.value} of ${this.suit})`;
+        if (this.visible) return `(${this.value} of ${this.suit})`;
+        else return `Unknown`;
     }
 }
 
@@ -112,11 +118,30 @@ abstract class Pile {
     public add = (card: Card) =>
         this.canAdd(card) ? this.cards.push(card) : null;
 
-    public removeTop = (): Card | undefined => this.cards.pop();
+    public addSeveral = (cards: Card[]) => 
+        this.canAdd(cards[0]) ? this.cards = this.cards.concat(cards) : null;
 
+    public removeTop = (): Card | undefined => this.cards.pop();
+    
+    public removeSeveral = (numOfCards: number): Card[] | undefined => {
+        if (numOfCards > this.cards.length) return;
+        for (let i = 1; i <= numOfCards; i++) {
+            if (!this.cards[this.cards.length - i].visible) return;
+        }
+        return this.cards.splice(-numOfCards);
+    }
+    
     public abstract canAdd(card: Card): boolean;
 
     public fillPile = (cards: Card[]) => (this.cards = cards);
+
+    public getVisibleCards = (): Card[] => {
+        let visibleCards: Card[] = [];
+        for (const card of this.cards) {
+            if (card.visible) visibleCards.push(card);
+        }
+        return visibleCards ?? [];
+    }
 
     public toString = () =>
         this.cards.length === 0
@@ -130,10 +155,7 @@ class ResultPile extends Pile {
         (card.suit === this.top.suit &&
             isValueNextOnResult(this.top.value, card.value));
 
-    public isFull(): boolean {
-        if (this.cards.length === values.length) return true;
-        else return false;
-    }
+    public isFull = (): boolean => this.cards.length === values.length;
 }
 
 class PlayPile extends Pile {
@@ -213,9 +235,14 @@ class Game {
         const shuffld = shuffle(allCards);
         // Now we put da cardz in da play zone
         for (const [index, pile] of this._playPiles.entries()) {
-            pile.fillPile(shuffld.splice(0, index));
+            pile.fillPile(shuffld.splice(0, (index + 1)));
+            pile.top.visible = true;
+
         }
         // And da rest in da draw
+        for (const card of shuffld) {
+            card.visible = true;
+        }
         this._drawPile.fillPile(shuffld);
     }
 
@@ -264,7 +291,7 @@ class Game {
         }
     };
 
-    public doMove({ from, to }: Move) {
+    public doMove({ from, to }: Move, numOfCards: number) {
         const [fromPile, toPile] = [from, to].map((m) =>
             this.getPile(m)
         );
@@ -275,15 +302,31 @@ class Game {
                     to,
                 })}`
             );
-        const card = fromPile.removeTop();
-        if (!toPile.canAdd(card))
+        if (numOfCards > 1) {
+            const cards = fromPile.removeSeveral(numOfCards);
+            if (!toPile.canAdd(cards[0]))
+            throw new Error(
+                `Illegal move, pile for move ${JSON.stringify({
+                    from,
+                    to,
+                })} cannot recive card ${cards
+                    .map((c) => c.toString())
+                    .reduce((pV, v) => `${pV} ${v}`)}
+                    , stack is currently ${toPile.toString()}`
+            );
+            toPile.addSeveral(cards);
+        } else {
+            const card = fromPile.removeTop();
+            if (!toPile.canAdd(card))
             throw new Error(
                 `Illegal move, pile for move ${JSON.stringify({
                     from,
                     to,
                 })} cannot recive card ${card.toString()}, stack is currently ${toPile.toString()}`
             );
-        toPile.add(card);
+            toPile.add(card);
+        }
+        if (!fromPile.top.visible) fromPile.top.visible = true;
     }
 
     public isGameWon(): boolean {
@@ -302,7 +345,7 @@ const moveString = `Type your desired move:
                     \n - \'X\': Exit game
                     \n\nPiles should be named as follows:
                     \n\'draw+\' for the draw pile.
-                    \n\'play+\' followed by a number 1-7 for the seven play piles.
+                    \n\'play+\' followed by a number 1-7 for the seven play piles. If you want to move several cards, add the number of cards to the end of your move.
                     \n\'result+\' followed by a number 1-4 for the four result piles.\n`
 
 const g = new Game();
@@ -318,10 +361,11 @@ while (g.gameOver === false) {
         case "M":
             const fromPile = move[1].split('+');
             const toPile = move[2].split('+');
+            const numOfCards = (move.length === 4) ? parseInt(move[3]) : 1;
             g.doMove({
                 from: { pile: fromPile[0] as PileType, index: parseInt(fromPile[1]) - 1 ?? -1},
-                to: { pile: toPile[0] as PileType, index: parseInt(toPile[1]) - 1 ?? -1}
-            })
+                to: { pile: toPile[0] as PileType, index: parseInt(toPile[1]) - 1 ?? -1},
+            }, numOfCards)
             break;
         case "X":
             g.gameOver = true;

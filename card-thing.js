@@ -134,9 +134,13 @@ var Card = /** @class */ (function () {
     function Card(suit, value) {
         this.suit = suit;
         this.value = value;
+        this.visible = false;
     }
     Card.prototype.toString = function () {
-        return "(" + this.value + " of " + this.suit + ")";
+        if (this.visible)
+            return "(" + this.value + " of " + this.suit + ")";
+        else
+            return "Unknown";
     };
     return Card;
 }());
@@ -148,8 +152,39 @@ var Pile = /** @class */ (function () {
         this.add = function (card) {
             return _this.canAdd(card) ? _this.cards.push(card) : null;
         };
+        this.addSeveral = function (cards) {
+            return _this.canAdd(cards[0]) ? _this.cards = _this.cards.concat(cards) : null;
+        };
         this.removeTop = function () { return _this.cards.pop(); };
+        this.removeSeveral = function (numOfCards) {
+            if (numOfCards > _this.cards.length)
+                return;
+            for (var i = 1; i <= numOfCards; i++) {
+                if (!_this.cards[_this.cards.length - i].visible)
+                    return;
+            }
+            return _this.cards.splice(-numOfCards);
+        };
         this.fillPile = function (cards) { return (_this.cards = cards); };
+        this.getVisibleCards = function () {
+            var e_1, _a;
+            var visibleCards = [];
+            try {
+                for (var _b = __values(_this.cards), _c = _b.next(); !_c.done; _c = _b.next()) {
+                    var card = _c.value;
+                    if (card.visible)
+                        visibleCards.push(card);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            return visibleCards !== null && visibleCards !== void 0 ? visibleCards : [];
+        };
         this.toString = function () {
             return _this.cards.length === 0
                 ? "Empty"
@@ -176,14 +211,9 @@ var ResultPile = /** @class */ (function (_super) {
                 (card.suit === _this.top.suit &&
                     isValueNextOnResult(_this.top.value, card.value));
         };
+        _this.isFull = function () { return _this.cards.length === values.length; };
         return _this;
     }
-    ResultPile.prototype.isFull = function () {
-        if (this.cards.length === values.length)
-            return true;
-        else
-            return false;
-    };
     return ResultPile;
 }(Pile));
 var PlayPile = /** @class */ (function (_super) {
@@ -244,7 +274,7 @@ function shuffle(array) {
 }
 var Game = /** @class */ (function () {
     function Game() {
-        var e_1, _a, e_2, _b, e_3, _c;
+        var e_2, _a, e_3, _b, e_4, _c, e_5, _d;
         var _this = this;
         this._drawPile = new DrawPile();
         this._resultPiles = Array(4).fill(null).map(function () { return new ResultPile(); });
@@ -266,43 +296,57 @@ var Game = /** @class */ (function () {
             for (var suits_1 = __values(suits), suits_1_1 = suits_1.next(); !suits_1_1.done; suits_1_1 = suits_1.next()) {
                 var suit = suits_1_1.value;
                 try {
-                    for (var values_1 = (e_2 = void 0, __values(values)), values_1_1 = values_1.next(); !values_1_1.done; values_1_1 = values_1.next()) {
+                    for (var values_1 = (e_3 = void 0, __values(values)), values_1_1 = values_1.next(); !values_1_1.done; values_1_1 = values_1.next()) {
                         var value = values_1_1.value;
                         allCards.push(new Card(suit, value));
                     }
                 }
-                catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                catch (e_3_1) { e_3 = { error: e_3_1 }; }
                 finally {
                     try {
                         if (values_1_1 && !values_1_1.done && (_b = values_1.return)) _b.call(values_1);
                     }
-                    finally { if (e_2) throw e_2.error; }
+                    finally { if (e_3) throw e_3.error; }
                 }
             }
         }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
         finally {
             try {
                 if (suits_1_1 && !suits_1_1.done && (_a = suits_1.return)) _a.call(suits_1);
             }
-            finally { if (e_1) throw e_1.error; }
+            finally { if (e_2) throw e_2.error; }
         }
         var shuffld = shuffle(allCards);
         try {
             // Now we put da cardz in da play zone
-            for (var _d = __values(this._playPiles.entries()), _e = _d.next(); !_e.done; _e = _d.next()) {
-                var _f = __read(_e.value, 2), index = _f[0], pile = _f[1];
-                pile.fillPile(shuffld.splice(0, index));
+            for (var _e = __values(this._playPiles.entries()), _f = _e.next(); !_f.done; _f = _e.next()) {
+                var _g = __read(_f.value, 2), index = _g[0], pile = _g[1];
+                pile.fillPile(shuffld.splice(0, (index + 1)));
+                pile.top.visible = true;
             }
         }
-        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
         finally {
             try {
-                if (_e && !_e.done && (_c = _d.return)) _c.call(_d);
+                if (_f && !_f.done && (_c = _e.return)) _c.call(_e);
             }
-            finally { if (e_3) throw e_3.error; }
+            finally { if (e_4) throw e_4.error; }
         }
-        // And da rest in da draw
+        try {
+            // And da rest in da draw
+            for (var shuffld_1 = __values(shuffld), shuffld_1_1 = shuffld_1.next(); !shuffld_1_1.done; shuffld_1_1 = shuffld_1.next()) {
+                var card = shuffld_1_1.value;
+                card.visible = true;
+            }
+        }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        finally {
+            try {
+                if (shuffld_1_1 && !shuffld_1_1.done && (_d = shuffld_1.return)) _d.call(shuffld_1);
+            }
+            finally { if (e_5) throw e_5.error; }
+        }
         this._drawPile.fillPile(shuffld);
     }
     Object.defineProperty(Game.prototype, "drawPile", {
@@ -344,7 +388,7 @@ var Game = /** @class */ (function () {
             .map(function (p) { var _a, _b; return (_b = (_a = p.top) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "Empty"; })
             .reduce(function (pV, v) { return pV + " " + v; }) + "\n\n");
     };
-    Game.prototype.doMove = function (_a) {
+    Game.prototype.doMove = function (_a, numOfCards) {
         var _this = this;
         var from = _a.from, to = _a.to;
         var _b = __read([from, to].map(function (m) {
@@ -355,14 +399,28 @@ var Game = /** @class */ (function () {
                 from: from,
                 to: to,
             }));
-        var card = fromPile.removeTop();
-        if (!toPile.canAdd(card))
-            throw new Error("Illegal move, pile for move " + JSON.stringify({
-                from: from,
-                to: to,
-            }) + " cannot recive card " + card.toString() + ", stack is currently " + toPile.toString());
-        toPile.add(card);
-        this.printStatus();
+        if (numOfCards > 1) {
+            var cards = fromPile.removeSeveral(numOfCards);
+            if (!toPile.canAdd(cards[0]))
+                throw new Error("Illegal move, pile for move " + JSON.stringify({
+                    from: from,
+                    to: to,
+                }) + " cannot recive card " + cards
+                    .map(function (c) { return c.toString(); })
+                    .reduce(function (pV, v) { return pV + " " + v; }) + "\n                    , stack is currently " + toPile.toString());
+            toPile.addSeveral(cards);
+        }
+        else {
+            var card = fromPile.removeTop();
+            if (!toPile.canAdd(card))
+                throw new Error("Illegal move, pile for move " + JSON.stringify({
+                    from: from,
+                    to: to,
+                }) + " cannot recive card " + card.toString() + ", stack is currently " + toPile.toString());
+            toPile.add(card);
+        }
+        if (!fromPile.top.visible)
+            fromPile.top.visible = true;
     };
     Game.prototype.isGameWon = function () {
         if (this._resultPiles[0].isFull() &&
@@ -375,7 +433,7 @@ var Game = /** @class */ (function () {
     };
     return Game;
 }());
-var moveString = "Type your desired move:\n                    \n - 'SD': Shift drawpile\n                    \n - 'M x y': Move card from x to y\n                    \n - 'X': Exit game\n                    \n\nPiles should be named as follows:\n                    \n'draw+' for the draw pile.\n                    \n'play+' followed by a number 1-7 for the seven play piles.\n                    \n'result+' followed by a number 1-4 for the four result piles.\n";
+var moveString = "Type your desired move:\n                    \n - 'SD': Shift drawpile\n                    \n - 'M x y': Move card from x to y\n                    \n - 'X': Exit game\n                    \n\nPiles should be named as follows:\n                    \n'draw+' for the draw pile.\n                    \n'play+' followed by a number 1-7 for the seven play piles. If you want to move several cards, add the number of cards to the end of your move.\n                    \n'result+' followed by a number 1-4 for the four result piles.\n";
 var g = new Game();
 g.printStatus();
 while (g.gameOver === false) {
@@ -387,10 +445,11 @@ while (g.gameOver === false) {
         case "M":
             var fromPile = move[1].split('+');
             var toPile = move[2].split('+');
+            var numOfCards = (move.length === 4) ? parseInt(move[3]) : 1;
             g.doMove({
                 from: { pile: fromPile[0], index: (_a = parseInt(fromPile[1]) - 1) !== null && _a !== void 0 ? _a : -1 },
-                to: { pile: toPile[0], index: (_b = parseInt(toPile[1]) - 1) !== null && _b !== void 0 ? _b : -1 }
-            });
+                to: { pile: toPile[0], index: (_b = parseInt(toPile[1]) - 1) !== null && _b !== void 0 ? _b : -1 },
+            }, numOfCards);
             break;
         case "X":
             g.gameOver = true;
