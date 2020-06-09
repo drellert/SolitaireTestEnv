@@ -1,5 +1,4 @@
 import * as read from 'readline-sync';
-import { isNullOrUndefined } from 'util';
 
 const suits = <const>["Hearts", "Spades", "Clubs", "Diamonds"];
 type Suit = typeof suits[number];
