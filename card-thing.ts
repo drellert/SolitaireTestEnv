@@ -316,6 +316,7 @@ class Game {
       const card = fromPile.removeTop();
       if (!toPile.canAdd(card))
         throw new Error(
+          //fik dette error
           `Illegal move, pile for move ${JSON.stringify({
             from,
             to,
@@ -323,11 +324,13 @@ class Game {
         );
       toPile.add(card);
     }
-    if (!fromPile.top.visible) fromPile.top.visible = true;
+    //gav fejl
+    if (fromPile.top?.visible===false) fromPile.top.visible = true;
   }
 
   public suggestMove(): Move {
-    // Step 1: available cards to foundation
+    // Step 1a: available cards(aces and deuces) from drawpile to foundation
+    // Step 1b: available cards(aces and deuces) from playpile to foundation
     for (const [pileIndex, pile] of this._foundationPiles.entries()) {
       const top = pile.top;
       if (top) {
@@ -414,6 +417,32 @@ class Game {
     }
     // Step 4: Don't empty a tableau pile without a King to replace.
     // Step 5: Consider carefully whether to fill a space with a  black King or a red King
+    // Step 6: Move top cards to foundation
+    for (const [pileIndex, pile] of this._foundationPiles.entries()) {
+      const top = pile.top;
+      if (top) {
+        const { suit, value } = top;
+        for (const [index, playPile] of this._playPiles.entries()) {
+          if (
+            playPile.top?.suit === suit &&
+            isValueNextOnResult(playPile.top?.value, value)
+          ) {
+            return {
+              from: {
+                pile: "play",
+                index,
+              },
+              to: {
+                pile: "foundation",
+                index: pileIndex,
+              },
+            };
+          }
+        }
+      } 
+    }
+    //No moves possible
+    console.log("No move was possible")
   }
 
   public isGameWon(): boolean {
@@ -441,6 +470,8 @@ const g = new Game();
 g.printStatus();
 
 while (g.gameOver === false) {
+    g.doMove(g.suggestMove());
+    /*
   let move = read.question(moveString).split(" ");
 
   switch (move[0]) {
@@ -461,14 +492,17 @@ while (g.gameOver === false) {
             pile: toPile[0] as PileType,
             index: parseInt(toPile[1]) - 1 ?? -1,
           },
+          
         },
-        numOfCards
+        
       );
       break;
     case "X":
       g.gameOver = true;
       break;
+      
   }
+*/
 
   g.printStatus();
   if (g.isGameWon()) g.gameOver = true;
