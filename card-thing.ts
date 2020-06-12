@@ -1,4 +1,5 @@
 import * as read from "readline-sync";
+import { isNull } from "util";
 
 const suits = <const>["Hearts", "Spades", "Clubs", "Diamonds"];
 type Suit = typeof suits[number];
@@ -331,12 +332,27 @@ class Game {
   public suggestMove(): Move {
     console.log("choosing move");
     // Step 1a: available cards(aces and deuces) from drawpile to foundation
-    for (const [pileIndex, pile] of this._foundationPiles.entries()) {
-      const top = pile.top;
-      if (top) {
-        const { suit, value } = top;
-        const drawPileTop = this.drawPile.top;
-        if(drawPileTop.value===2&&value===2&&drawPileTop.suit===suit){
+    if(this.drawPile.top.value==="Ace"){
+      for(const [pileIndex, pile] of this._foundationPiles.entries()){
+        if(!pile.top){
+          console.log("Drawpile ace to foundation");
+          return {
+            from: {
+              pile: "draw",
+              index:0,
+            },
+            to: {
+              pile: "foundation",
+              index: pileIndex,
+            },
+          };
+        }
+      }
+    }
+    if(this.drawPile.top.value===2){
+      for(const [pileIndex, pile] of this._foundationPiles.entries()){
+        if(pile.top){
+        if(pile.top.value==="Ace"&&pile.top.suit===this.drawPile.top.suit){
           console.log("Drawpile deuce to foundation");
           return {
             from: {
@@ -348,21 +364,10 @@ class Game {
               index: pileIndex,
             },
           };
-        }else if (drawPileTop.value==="Ace"){
-          console.log("Drawpile ace to foundation");
-          return {
-            from: {
-              pile: "draw",
-              index:0,
-            },
-            to: {
-              pile: "foundation",
-              index: pileIndex,
-            },
-          }
         }
       }
     }
+  }
     
     // Step 1b: available cards(aces and deuces) from playpile to foundation
     for (const [pileIndex, pile] of this._foundationPiles.entries()) {
@@ -479,7 +484,9 @@ class Game {
           for (const [targetIndex, targetPile] of this._playPiles.entries()) {
             if (targetIndex !== index && targetPile.canAdd(bottom)) {
               fromString=bottom.value+" of "+bottom.suit;
+              if(targetPile){
               toString=targetPile.top.value+" of "+targetPile.top.suit;
+              }
               viableMove = {
                 from: {
                   pile: "play",
