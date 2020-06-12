@@ -406,6 +406,29 @@ class Game {
       }
     }
     //Step 2 : move drawpile king to empty playpile
+    if(this.drawPile.top.value==="King"){
+      let isPlayPileEmpty : boolean = false;
+    let emptyPlayPile : number = null;
+    for(const [index, pile] of this._playPiles.entries()){
+      if(pile.top===null){
+        isPlayPileEmpty = true;
+        emptyPlayPile = index;
+              console.log("drawpile king to empty playpile");
+              return{
+              from: {
+                pile: "draw",
+                index:0,
+              },
+              to: {
+                pile: "play",
+                index: emptyPlayPile,
+              },
+            };
+          }
+        }
+  
+  
+    }
     //Step 2a: move playpile king to empty playpile
     let isPlayPileEmpty : boolean = false;
     let emptyPlayPile : number = null;
