@@ -405,7 +405,8 @@ class Game {
         }
       }
     }
-    //Steo 2a: move king to empty playpile
+    //Step 2 : move drawpile king to empty playpile
+    //Step 2a: move playpile king to empty playpile
     let isPlayPileEmpty : boolean = false;
     let emptyPlayPile : number = null;
     for(const [index, pile] of this._playPiles.entries()){
@@ -413,9 +414,13 @@ class Game {
         isPlayPileEmpty = true;
         emptyPlayPile = index;
         for(const [index, pile] of this._playPiles.entries()){
-          const visible = pile.getVisibleCards();
-          const bottom = visible[visible.length - 1];
-            if(bottom.value==="King" && pile.numberHiddenCards()!==null){
+          let hiddenCards : number = null;
+          //giver fejl (value undefined)- der skal være hidden cards 
+            if(pile.numberHiddenCards() > hiddenCards){
+              const visible = pile.getVisibleCards();
+              const bottom = visible[visible.length - 1];
+              if(bottom){
+              if(bottom.value==="King"){
               console.log("Playpile card king to empty playpile");
               return{
               from: {
@@ -430,9 +435,10 @@ class Game {
             };
           }
         }
+        }
       }
     }
-    
+  }
   
     
     // Step 2b: expose hidden cards from column with the most hidden cards

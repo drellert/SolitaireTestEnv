@@ -541,7 +541,8 @@ var Game = /** @class */ (function () {
             }
             finally { if (e_7) throw e_7.error; }
         }
-        //Steo 2a: move king to empty playpile
+        //Step 2 : move drawpile king to empty playpile
+        //Step 2a: move playpile king to empty playpile
         var isPlayPileEmpty = false;
         var emptyPlayPile = null;
         try {
@@ -553,21 +554,27 @@ var Game = /** @class */ (function () {
                     try {
                         for (var _7 = (e_11 = void 0, __values(this._playPiles.entries())), _8 = _7.next(); !_8.done; _8 = _7.next()) {
                             var _9 = __read(_8.value, 2), index_1 = _9[0], pile_1 = _9[1];
-                            var visible = pile_1.getVisibleCards();
-                            var bottom = visible[visible.length - 1];
-                            if (bottom.value === "King" && pile_1.numberHiddenCards() !== null) {
-                                console.log("Playpile card king to empty playpile");
-                                return {
-                                    from: {
-                                        pile: "play",
-                                        index: index_1,
-                                    },
-                                    to: {
-                                        pile: "play",
-                                        index: emptyPlayPile,
-                                    },
-                                    amount: visible.length
-                                };
+                            var hiddenCards_1 = null;
+                            //giver fejl (value undefined)- der skal være hidden cards 
+                            if (pile_1.numberHiddenCards() > hiddenCards_1) {
+                                var visible = pile_1.getVisibleCards();
+                                var bottom = visible[visible.length - 1];
+                                if (bottom) {
+                                    if (bottom.value === "King") {
+                                        console.log("Playpile card king to empty playpile");
+                                        return {
+                                            from: {
+                                                pile: "play",
+                                                index: index_1,
+                                            },
+                                            to: {
+                                                pile: "play",
+                                                index: emptyPlayPile,
+                                            },
+                                            amount: visible.length
+                                        };
+                                    }
+                                }
                             }
                         }
                     }
