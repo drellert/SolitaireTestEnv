@@ -466,7 +466,6 @@ class Game {
       this.moveKingToEmpty(true,false);
     }
     else if(this.replacementKing()){
-      console.log(" 1 move whatever king");
       this.moveKingToEmpty(false,false);
     }
    

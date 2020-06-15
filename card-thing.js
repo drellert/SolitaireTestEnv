@@ -602,7 +602,6 @@ var Game = /** @class */ (function () {
             this.moveKingToEmpty(true, false);
         }
         else if (this.replacementKing()) {
-            console.log(" 1 move whatever king");
             this.moveKingToEmpty(false, false);
         }
         // Tip 3: Expose hidden cards from the play pile with the most hidden cards
