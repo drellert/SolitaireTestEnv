@@ -229,11 +229,12 @@ var DrawPile = /** @class */ (function (_super) {
             if (_this.cards.length === 0)
                 return undefined;
             var cardRemoved = _this.cards.splice(_this.index, 1)[0];
-            _this.index = (_this.index + 1) % (_this.cards.length - 1);
+            _this.index = (_this.index === 0) ? 0 : _this.index - 1;
             return cardRemoved;
         };
         _this.shift = function () {
-            return (_this.index = (_this.index + 1) % (_this.cards.length - 1));
+            return (_this.index =
+                _this.cards.length === 1 ? 0 : (_this.index + 1) % (_this.cards.length));
         };
         return _this;
     }
@@ -378,7 +379,7 @@ var Game = /** @class */ (function () {
             .map(function (p) { var _a, _b; return (_b = (_a = p.top) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "Empty"; })
             .reduce(function (pV, v) { return pV + " " + v; }) + " \nPlay Piles: " + this._playPiles
             .map(function (p) { return "\n" + p.toString(); })
-            .reduce(function (pV, v) { return pV + " " + v; }) + "\n\n");
+            .reduce(function (pV, v) { return "" + pV + v + " "; }) + "\n\n");
     };
     Game.prototype.doMove = function (_a) {
         var _this = this;
@@ -427,7 +428,7 @@ var Game = /** @class */ (function () {
     };
     Game.prototype.replacementKing = function () {
         var e_5, _a, e_6, _b;
-        if (this._drawPile.top.value === "King")
+        if (this._drawPile.top && this._drawPile.top.value === "King")
             return true;
         else {
             try {
@@ -716,7 +717,9 @@ var Game = /** @class */ (function () {
             //        be cautious in your decision. Look at the color of the blocking cards and make the
             //        appropriate color choice. For example, if you have a red Jack that blocks some hidden
             //        cards, you have to select a red King and than wait for a black Queen.
-            // Move top cards to foundation
+            // Move cards from play piles and draw pile to foundation
+            // TODO: extra checks before moving cards (e.g. cards from one red suit and one black suit
+            // "buddy up")
             for (var _20 = __values(this._foundationPiles.entries()), _21 = _20.next(); !_21.done; _21 = _20.next()) {
                 var _22 = __read(_21.value, 2), foundationIndex = _22[0], foundationPile = _22[1];
                 if (foundationPile.top) {
@@ -744,6 +747,19 @@ var Game = /** @class */ (function () {
                             if (_24 && !_24.done && (_l = _23.return)) _l.call(_23);
                         }
                         finally { if (e_17) throw e_17.error; }
+                    }
+                    if (this.drawPile.top && foundationPile.canAdd(this.drawPile.top)) {
+                        console.log("Drawpile cards to foundation");
+                        return {
+                            from: {
+                                pile: "draw",
+                                index: 0,
+                            },
+                            to: {
+                                pile: "foundation",
+                                index: foundationIndex,
+                            },
+                        };
                     }
                 }
             }
