@@ -462,20 +462,20 @@ var Game = /** @class */ (function () {
         return false;
     };
     Game.prototype.suggestMove = function () {
-        var e_7, _a, e_8, _b, e_9, _c, e_10, _d, e_11, _e, e_12, _f, e_13, _g, e_14, _h, e_15, _j, e_16, _k, e_17, _l;
-        var _m, _o, _p, _q, _r, _s;
+        var e_7, _a, e_8, _b, e_9, _c, e_10, _d, e_11, _e, e_12, _f, e_13, _g, e_14, _h, e_15, _j;
+        var _k, _l, _m, _o, _p;
         // Strategy taken from https://www.bvssolitaire.com/rules/klondike-solitaire-strategy.htm
         console.log("Choosing move...");
         try {
             // Tip 1: We assume that a card from the draw pile is always turned up, as long as the
             //        drawpile isn't empty.
             // Tip 2A: Move available cards (Aces and Deuces) from play pile to foundation pile
-            for (var _t = __values(this._playPiles.entries()), _u = _t.next(); !_u.done; _u = _t.next()) {
-                var _v = __read(_u.value, 2), playPileIndex = _v[0], playPile = _v[1];
-                if (((_m = playPile.top) === null || _m === void 0 ? void 0 : _m.value) === "Ace" || ((_o = playPile.top) === null || _o === void 0 ? void 0 : _o.value) === 2) {
+            for (var _q = __values(this._playPiles.entries()), _r = _q.next(); !_r.done; _r = _q.next()) {
+                var _s = __read(_r.value, 2), playPileIndex = _s[0], playPile = _s[1];
+                if (((_k = playPile.top) === null || _k === void 0 ? void 0 : _k.value) === "Ace" || ((_l = playPile.top) === null || _l === void 0 ? void 0 : _l.value) === 2) {
                     try {
-                        for (var _w = (e_8 = void 0, __values(this._foundationPiles.entries())), _x = _w.next(); !_x.done; _x = _w.next()) {
-                            var _y = __read(_x.value, 2), foundationPileIndex = _y[0], foundationPile = _y[1];
+                        for (var _t = (e_8 = void 0, __values(this._foundationPiles.entries())), _u = _t.next(); !_u.done; _u = _t.next()) {
+                            var _v = __read(_u.value, 2), foundationPileIndex = _v[0], foundationPile = _v[1];
                             if (foundationPile.canAdd(playPile.top)) {
                                 return {
                                     from: {
@@ -493,7 +493,7 @@ var Game = /** @class */ (function () {
                     catch (e_8_1) { e_8 = { error: e_8_1 }; }
                     finally {
                         try {
-                            if (_x && !_x.done && (_b = _w.return)) _b.call(_w);
+                            if (_u && !_u.done && (_b = _t.return)) _b.call(_t);
                         }
                         finally { if (e_8) throw e_8.error; }
                     }
@@ -503,15 +503,15 @@ var Game = /** @class */ (function () {
         catch (e_7_1) { e_7 = { error: e_7_1 }; }
         finally {
             try {
-                if (_u && !_u.done && (_a = _t.return)) _a.call(_t);
+                if (_r && !_r.done && (_a = _q.return)) _a.call(_q);
             }
             finally { if (e_7) throw e_7.error; }
         }
         // Tip 2B: Move available cards (Aces and Deuces) from draw pile to foundation pile
-        if (((_p = this.drawPile.top) === null || _p === void 0 ? void 0 : _p.value) === "Ace" || ((_q = this.drawPile.top) === null || _q === void 0 ? void 0 : _q.value) === 2) {
+        if (((_m = this.drawPile.top) === null || _m === void 0 ? void 0 : _m.value) === "Ace" || ((_o = this.drawPile.top) === null || _o === void 0 ? void 0 : _o.value) === 2) {
             try {
-                for (var _z = __values(this._foundationPiles.entries()), _0 = _z.next(); !_0.done; _0 = _z.next()) {
-                    var _1 = __read(_0.value, 2), pileIndex = _1[0], pile = _1[1];
+                for (var _w = __values(this._foundationPiles.entries()), _x = _w.next(); !_x.done; _x = _w.next()) {
+                    var _y = __read(_x.value, 2), pileIndex = _y[0], pile = _y[1];
                     if (pile.canAdd(this.drawPile.top)) {
                         console.log("Drawpile ace or deuce to foundation");
                         return {
@@ -530,93 +530,80 @@ var Game = /** @class */ (function () {
             catch (e_9_1) { e_9 = { error: e_9_1 }; }
             finally {
                 try {
-                    if (_0 && !_0.done && (_c = _z.return)) _c.call(_z);
+                    if (_x && !_x.done && (_c = _w.return)) _c.call(_w);
                 }
                 finally { if (e_9) throw e_9.error; }
             }
         }
         // Tip 5: Move King from play pile to empty play pile
+        // Consider carefully whether to fill a space with a  black King or a red King
+        //tjek for konger i alle byggestabler med skjulte kort og i dækket,
+        //hvis der er flere, så tjek dækket og de byggestabler der opfylder betingelsen at de ikke har en konge
+        //og de har synlige kort. Hvis en af dem er en dronning, så vælg kongen med dem modsatte farve af dronningen.
+        var numKings = null;
+        var blackKing = false;
+        var redKing = false;
+        var blackQueen = false;
+        var redQueen = false;
         var hiddenCardsBehindKing = null;
         var viableKingMove = null;
-        try {
-            for (var _2 = __values(this._playPiles.entries()), _3 = _2.next(); !_3.done; _3 = _2.next()) {
-                var _4 = __read(_3.value, 2), targetIndex = _4[0], targetPile = _4[1];
-                if (targetPile.empty) {
-                    try {
-                        for (var _5 = (e_11 = void 0, __values(this._playPiles.entries())), _6 = _5.next(); !_6.done; _6 = _5.next()) {
-                            var _7 = __read(_6.value, 2), index = _7[0], pile = _7[1];
-                            //giver fejl (value undefined)- der skal være hidden cards
-                            var visible = pile.getVisibleCards();
-                            var bottom = visible[0];
-                            if (bottom &&
-                                bottom.value === "King" &&
-                                (viableKingMove === null ||
-                                    hiddenCardsBehindKing === null ||
-                                    pile.numberHiddenCards() >= hiddenCardsBehindKing)) {
-                                hiddenCardsBehindKing = pile.numberHiddenCards();
-                                // A King isn't moved if there aren't any hidden cards behind it
-                                if (hiddenCardsBehindKing !== 0) {
-                                    viableKingMove = {
-                                        from: {
-                                            pile: "play",
-                                            index: index,
-                                        },
-                                        to: {
-                                            pile: "play",
-                                            index: targetIndex,
-                                        },
-                                        amount: visible.length,
-                                    };
-                                }
+        if (this.replacementKing()) {
+            //tjekker drawpile
+            if (this.drawPile.top.value === "King") {
+                numKings++;
+                if (this.drawPile.top.suit === "Hearts" || this.drawPile.top.suit === "Diamonds") {
+                    redKing = true;
+                }
+                else {
+                    blackKing = true;
+                }
+            }
+            try {
+                //tjekker playpile
+                for (var _z = __values(this._playPiles.entries()), _0 = _z.next(); !_0.done; _0 = _z.next()) {
+                    var _1 = __read(_0.value, 2), index = _1[0], playPile = _1[1];
+                    var visible = playPile.getVisibleCards();
+                    var bottom = visible[visible.length - 1];
+                    if (bottom) {
+                        if (bottom.value === "King") {
+                            numKings++;
+                            if (this.drawPile.top.suit === "Hearts" || this.drawPile.top.suit === "Diamonds") {
+                                redKing = true;
+                            }
+                            else {
+                                blackKing = true;
+                            }
+                        }
+                        else if (bottom.value === "Queen") {
+                            if (this.drawPile.top.suit === "Hearts" || this.drawPile.top.suit === "Diamonds") {
+                                redQueen = true;
+                            }
+                            else {
+                                blackQueen = true;
                             }
                         }
                     }
-                    catch (e_11_1) { e_11 = { error: e_11_1 }; }
-                    finally {
-                        try {
-                            if (_6 && !_6.done && (_e = _5.return)) _e.call(_5);
-                        }
-                        finally { if (e_11) throw e_11.error; }
-                    }
-                    if (viableKingMove)
-                        return viableKingMove;
                 }
             }
-        }
-        catch (e_10_1) { e_10 = { error: e_10_1 }; }
-        finally {
-            try {
-                if (_3 && !_3.done && (_d = _2.return)) _d.call(_2);
-            }
-            finally { if (e_10) throw e_10.error; }
-        }
-        // Tip 5: Move King from draw pile to empty play pile
-        if (((_r = this.drawPile.top) === null || _r === void 0 ? void 0 : _r.value) === "King") {
-            try {
-                for (var _8 = __values(this._playPiles.entries()), _9 = _8.next(); !_9.done; _9 = _8.next()) {
-                    var _10 = __read(_9.value, 2), index = _10[0], pile = _10[1];
-                    if (pile.empty) {
-                        console.log("drawpile king to empty playpile");
-                        return {
-                            from: {
-                                pile: "draw",
-                                index: 0,
-                            },
-                            to: {
-                                pile: "play",
-                                index: index,
-                            },
-                        };
-                    }
-                }
-            }
-            catch (e_12_1) { e_12 = { error: e_12_1 }; }
+            catch (e_10_1) { e_10 = { error: e_10_1 }; }
             finally {
                 try {
-                    if (_9 && !_9.done && (_f = _8.return)) _f.call(_8);
+                    if (_0 && !_0.done && (_d = _z.return)) _d.call(_z);
                 }
-                finally { if (e_12) throw e_12.error; }
+                finally { if (e_10) throw e_10.error; }
             }
+        }
+        if (blackKing && redKing && redQueen && !blackQueen) {
+            console.log(" 1 move black king");
+            this.moveKingToEmpty(false, true);
+        }
+        else if (blackKing && redKing && !redQueen && blackQueen) {
+            console.log(" 1 move red king");
+            this.moveKingToEmpty(true, false);
+        }
+        else {
+            console.log(" 1 move whatever king");
+            this.moveKingToEmpty(false, false);
         }
         // Tip 3: Expose hidden cards from the play pile with the most hidden cards
         var hiddenCards = null;
@@ -624,16 +611,16 @@ var Game = /** @class */ (function () {
         var fromString = "";
         var toString = "";
         try {
-            for (var _11 = __values(this._playPiles.entries()), _12 = _11.next(); !_12.done; _12 = _11.next()) {
-                var _13 = __read(_12.value, 2), index = _13[0], pile = _13[1];
+            for (var _2 = __values(this._playPiles.entries()), _3 = _2.next(); !_3.done; _3 = _2.next()) {
+                var _4 = __read(_3.value, 2), index = _4[0], pile = _4[1];
                 if (!pile.empty) {
                     var visibleCards = pile.getVisibleCards();
                     var bottom = visibleCards[0];
                     if (bottom) {
                         try {
                             // Now we check if this bottom card can be moved somewhere else
-                            for (var _14 = (e_14 = void 0, __values(this._playPiles.entries())), _15 = _14.next(); !_15.done; _15 = _14.next()) {
-                                var _16 = __read(_15.value, 2), targetIndex = _16[0], targetPile = _16[1];
+                            for (var _5 = (e_12 = void 0, __values(this._playPiles.entries())), _6 = _5.next(); !_6.done; _6 = _5.next()) {
+                                var _7 = __read(_6.value, 2), targetIndex = _7[0], targetPile = _7[1];
                                 if (targetIndex !== index &&
                                     targetPile.canAdd(bottom) &&
                                     (viableMove === null ||
@@ -643,7 +630,7 @@ var Game = /** @class */ (function () {
                                     // Tip 5: A play pile is only emptied if there is a King to put in it
                                     if (hiddenCards !== 0 || this.replacementKing()) {
                                         fromString = bottom.toString();
-                                        toString = (_s = targetPile.top) === null || _s === void 0 ? void 0 : _s.toString();
+                                        toString = (_p = targetPile.top) === null || _p === void 0 ? void 0 : _p.toString();
                                         viableMove = {
                                             from: {
                                                 pile: "play",
@@ -659,23 +646,23 @@ var Game = /** @class */ (function () {
                                 }
                             }
                         }
-                        catch (e_14_1) { e_14 = { error: e_14_1 }; }
+                        catch (e_12_1) { e_12 = { error: e_12_1 }; }
                         finally {
                             try {
-                                if (_15 && !_15.done && (_h = _14.return)) _h.call(_14);
+                                if (_6 && !_6.done && (_f = _5.return)) _f.call(_5);
                             }
-                            finally { if (e_14) throw e_14.error; }
+                            finally { if (e_12) throw e_12.error; }
                         }
                     }
                 }
             }
         }
-        catch (e_13_1) { e_13 = { error: e_13_1 }; }
+        catch (e_11_1) { e_11 = { error: e_11_1 }; }
         finally {
             try {
-                if (_12 && !_12.done && (_g = _11.return)) _g.call(_11);
+                if (_3 && !_3.done && (_e = _2.return)) _e.call(_2);
             }
-            finally { if (e_13) throw e_13.error; }
+            finally { if (e_11) throw e_11.error; }
         }
         if (viableMove) {
             console.log("Playpile card(" + fromString + ") to other playpile card " + toString);
@@ -686,8 +673,8 @@ var Game = /** @class */ (function () {
         var topDraw = this._drawPile.top;
         if (topDraw) {
             try {
-                for (var _17 = __values(this._playPiles.entries()), _18 = _17.next(); !_18.done; _18 = _17.next()) {
-                    var _19 = __read(_18.value, 2), index = _19[0], pile = _19[1];
+                for (var _8 = __values(this._playPiles.entries()), _9 = _8.next(); !_9.done; _9 = _8.next()) {
+                    var _10 = __read(_9.value, 2), index = _10[0], pile = _10[1];
                     if (pile.canAdd(topDraw)) {
                         console.log("Drawpile card to playpile");
                         return {
@@ -703,12 +690,12 @@ var Game = /** @class */ (function () {
                     }
                 }
             }
-            catch (e_15_1) { e_15 = { error: e_15_1 }; }
+            catch (e_13_1) { e_13 = { error: e_13_1 }; }
             finally {
                 try {
-                    if (_18 && !_18.done && (_j = _17.return)) _j.call(_17);
+                    if (_9 && !_9.done && (_g = _8.return)) _g.call(_8);
                 }
-                finally { if (e_15) throw e_15.error; }
+                finally { if (e_13) throw e_13.error; }
             }
         }
         try {
@@ -717,12 +704,12 @@ var Game = /** @class */ (function () {
             //        appropriate color choice. For example, if you have a red Jack that blocks some hidden
             //        cards, you have to select a red King and than wait for a black Queen.
             // Move top cards to foundation
-            for (var _20 = __values(this._foundationPiles.entries()), _21 = _20.next(); !_21.done; _21 = _20.next()) {
-                var _22 = __read(_21.value, 2), foundationIndex = _22[0], foundationPile = _22[1];
+            for (var _11 = __values(this._foundationPiles.entries()), _12 = _11.next(); !_12.done; _12 = _11.next()) {
+                var _13 = __read(_12.value, 2), foundationIndex = _13[0], foundationPile = _13[1];
                 if (foundationPile.top) {
                     try {
-                        for (var _23 = (e_17 = void 0, __values(this._playPiles.entries())), _24 = _23.next(); !_24.done; _24 = _23.next()) {
-                            var _25 = __read(_24.value, 2), playIndex = _25[0], playPile = _25[1];
+                        for (var _14 = (e_15 = void 0, __values(this._playPiles.entries())), _15 = _14.next(); !_15.done; _15 = _14.next()) {
+                            var _16 = __read(_15.value, 2), playIndex = _16[0], playPile = _16[1];
                             if (playPile.top && foundationPile.canAdd(playPile.top)) {
                                 console.log("Playpile cards to foundation");
                                 return {
@@ -738,22 +725,22 @@ var Game = /** @class */ (function () {
                             }
                         }
                     }
-                    catch (e_17_1) { e_17 = { error: e_17_1 }; }
+                    catch (e_15_1) { e_15 = { error: e_15_1 }; }
                     finally {
                         try {
-                            if (_24 && !_24.done && (_l = _23.return)) _l.call(_23);
+                            if (_15 && !_15.done && (_j = _14.return)) _j.call(_14);
                         }
-                        finally { if (e_17) throw e_17.error; }
+                        finally { if (e_15) throw e_15.error; }
                     }
                 }
             }
         }
-        catch (e_16_1) { e_16 = { error: e_16_1 }; }
+        catch (e_14_1) { e_14 = { error: e_14_1 }; }
         finally {
             try {
-                if (_21 && !_21.done && (_k = _20.return)) _k.call(_20);
+                if (_12 && !_12.done && (_h = _11.return)) _h.call(_11);
             }
-            finally { if (e_16) throw e_16.error; }
+            finally { if (e_14) throw e_14.error; }
         }
         // If no other move is found, the shifting of the draw pile is suggested.
         // This will create a loop, if the user continues to use the program, since we don't save an
@@ -776,6 +763,143 @@ var Game = /** @class */ (function () {
         //No moves possible
         console.log("No move was possible");
         console.log("You lost, ignore errors");
+    };
+    Game.prototype.moveKingToEmpty = function (redKing, blackKing) {
+        var e_16, _a, e_17, _b;
+        //duplikeret kode
+        var hiddenCardsBehindKing = null;
+        var viableKingMove = null;
+        try {
+            for (var _c = __values(this._playPiles.entries()), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var _e = __read(_d.value, 2), targetIndex = _e[0], targetPile = _e[1];
+                if (targetPile.empty) {
+                    try {
+                        for (var _f = (e_17 = void 0, __values(this._playPiles.entries())), _g = _f.next(); !_g.done; _g = _f.next()) {
+                            var _h = __read(_g.value, 2), index = _h[0], pile = _h[1];
+                            //giver fejl (value undefined)- der skal være hidden cards
+                            var visible = pile.getVisibleCards();
+                            var bottom = visible[0];
+                            if (blackKing && !redKing) {
+                                if (bottom &&
+                                    bottom.value === "King" && (bottom.suit === "Clubs" || bottom.suit === "Spades") &&
+                                    (viableKingMove === null ||
+                                        hiddenCardsBehindKing === null ||
+                                        pile.numberHiddenCards() >= hiddenCardsBehindKing)) {
+                                    hiddenCardsBehindKing = pile.numberHiddenCards();
+                                    // A King isn't moved if there aren't any hidden cards behind it
+                                    console.log(" 2 move black king");
+                                    if (hiddenCardsBehindKing !== 0) {
+                                        viableKingMove = {
+                                            from: {
+                                                pile: "play",
+                                                index: index,
+                                            },
+                                            to: {
+                                                pile: "play",
+                                                index: targetIndex,
+                                            },
+                                            amount: visible.length,
+                                        };
+                                    }
+                                }
+                            }
+                            else if (redKing && !blackKing) {
+                                if (bottom &&
+                                    bottom.value === "King" && (bottom.suit === "Diamonds" || bottom.suit === "Hearts") &&
+                                    (viableKingMove === null ||
+                                        hiddenCardsBehindKing === null ||
+                                        pile.numberHiddenCards() >= hiddenCardsBehindKing)) {
+                                    hiddenCardsBehindKing = pile.numberHiddenCards();
+                                    // A King isn't moved if there aren't any hidden cards behind it
+                                    if (hiddenCardsBehindKing !== 0) {
+                                        console.log(" 2 move red king");
+                                        viableKingMove = {
+                                            from: {
+                                                pile: "play",
+                                                index: index,
+                                            },
+                                            to: {
+                                                pile: "play",
+                                                index: targetIndex,
+                                            },
+                                            amount: visible.length,
+                                        };
+                                    }
+                                }
+                            }
+                            else {
+                                if (bottom &&
+                                    bottom.value === "King" &&
+                                    (viableKingMove === null ||
+                                        hiddenCardsBehindKing === null ||
+                                        pile.numberHiddenCards() >= hiddenCardsBehindKing)) {
+                                    hiddenCardsBehindKing = pile.numberHiddenCards();
+                                    // A King isn't moved if there aren't any hidden cards behind it
+                                    if (hiddenCardsBehindKing !== 0) {
+                                        console.log("2 move any king");
+                                        viableKingMove = {
+                                            from: {
+                                                pile: "play",
+                                                index: index,
+                                            },
+                                            to: {
+                                                pile: "play",
+                                                index: targetIndex,
+                                            },
+                                            amount: visible.length,
+                                        };
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (e_17_1) { e_17 = { error: e_17_1 }; }
+                    finally {
+                        try {
+                            if (_g && !_g.done && (_b = _f.return)) _b.call(_f);
+                        }
+                        finally { if (e_17) throw e_17.error; }
+                    }
+                    if (viableKingMove)
+                        return viableKingMove;
+                }
+            }
+        }
+        catch (e_16_1) { e_16 = { error: e_16_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_16) throw e_16.error; }
+        }
+    };
+    Game.prototype.drawpileKingToEmpty = function () {
+        var e_18, _a;
+        try {
+            for (var _b = __values(this._playPiles.entries()), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var _d = __read(_c.value, 2), index = _d[0], pile = _d[1];
+                if (pile.empty) {
+                    console.log("drawpile king to empty playpile");
+                    return {
+                        from: {
+                            pile: "draw",
+                            index: 0,
+                        },
+                        to: {
+                            pile: "play",
+                            index: index,
+                        },
+                    };
+                }
+            }
+        }
+        catch (e_18_1) { e_18 = { error: e_18_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_18) throw e_18.error; }
+        }
     };
     Game.prototype.isGameWon = function () {
         var _a, _b, _c, _d;

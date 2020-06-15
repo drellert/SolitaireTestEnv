@@ -409,62 +409,67 @@ class Game {
     }
 
     // Tip 5: Move King from play pile to empty play pile
+    // Consider carefully whether to fill a space with a  black King or a red King
+    //tjek for konger i alle byggestabler med skjulte kort og i dækket,
+    //hvis der er flere, så tjek dækket og de byggestabler der opfylder betingelsen at de ikke har en konge
+    //og de har synlige kort. Hvis en af dem er en dronning, så vælg kongen med dem modsatte farve af dronningen.
+    let numKings : number = null;
+    let blackKing : boolean =  false;
+    let redKing : boolean = false;
+    let blackQueen : boolean =  false;
+    let redQueen : boolean = false;
     let hiddenCardsBehindKing: number = null;
     let viableKingMove: Move = null;
 
-    for (const [targetIndex, targetPile] of this._playPiles.entries()) {
-      if (targetPile.empty) {
-        for (const [index, pile] of this._playPiles.entries()) {
-          //giver fejl (value undefined)- der skal være hidden cards
-          const visible = pile.getVisibleCards();
-          const bottom = visible[0];
-          if (
-            bottom &&
-            bottom.value === "King" &&
-            (viableKingMove === null ||
-              hiddenCardsBehindKing === null ||
-              pile.numberHiddenCards() >= hiddenCardsBehindKing)
-          ) {
-            hiddenCardsBehindKing = pile.numberHiddenCards();
-            // A King isn't moved if there aren't any hidden cards behind it
-            if (hiddenCardsBehindKing !== 0) {
-              viableKingMove = {
-                from: {
-                  pile: "play",
-                  index: index,
-                },
-                to: {
-                  pile: "play",
-                  index: targetIndex,
-                },
-                amount: visible.length,
-              };
+    if(this.replacementKing()){
+      //tjekker drawpile
+      if(this.drawPile.top.value==="King"){
+        numKings++;
+        if(this.drawPile.top.suit==="Hearts"||this.drawPile.top.suit==="Diamonds"){
+          redKing = true;
+        }
+        else{
+          blackKing = true;
+        }
+      }
+      //tjekker playpile
+      for(const [index, playPile] of this._playPiles.entries()){
+        const visible = playPile.getVisibleCards();
+        const bottom = visible[visible.length - 1];
+        if(bottom){
+          if(bottom.value==="King"){
+            numKings++;
+            if(this.drawPile.top.suit==="Hearts"||this.drawPile.top.suit==="Diamonds"){
+              redKing = true;
+            }
+            else{
+              blackKing = true;
+            }
+          }
+          else if(bottom.value==="Queen"){
+            if(this.drawPile.top.suit==="Hearts"||this.drawPile.top.suit==="Diamonds"){
+              redQueen = true;
+            }
+            else{
+              blackQueen = true;
             }
           }
         }
-        if (viableKingMove) return viableKingMove;
       }
     }
-
-    // Tip 5: Move King from draw pile to empty play pile
-    if (this.drawPile.top?.value === "King") {
-      for (const [index, pile] of this._playPiles.entries()) {
-        if (pile.empty) {
-          console.log("drawpile king to empty playpile");
-          return {
-            from: {
-              pile: "draw",
-              index: 0,
-            },
-            to: {
-              pile: "play",
-              index,
-            },
-          };
-        }
-      }
+    if(blackKing&&redKing&&redQueen&&!blackQueen){
+      console.log(" 1 move black king");
+      this.moveKingToEmpty(false,true);
     }
-
+    else if(blackKing&&redKing&&!redQueen&&blackQueen){
+      console.log(" 1 move red king");
+      this.moveKingToEmpty(true,false);
+    }
+    else{
+      console.log(" 1 move whatever king");
+      this.moveKingToEmpty(false,false);
+    }
+   
     // Tip 3: Expose hidden cards from the play pile with the most hidden cards
     let hiddenCards: number = null;
     let viableMove: Move = null;
@@ -514,7 +519,6 @@ class Game {
       );
       return viableMove;
     }
-
     // Tip 3: The best move provides you opportunity to make other moves or expose hidden cards
     // We see if a card from the draw pile can be added to the play piles
     const topDraw = this._drawPile.top;
@@ -585,6 +589,121 @@ class Game {
     //No moves possible
     console.log("No move was possible");
     console.log("You lost, ignore errors");
+  }
+
+
+  public moveKingToEmpty(redKing : boolean, blackKing : boolean){
+      //duplikeret kode
+      let hiddenCardsBehindKing: number = null;
+    let viableKingMove: Move = null;
+
+    for (const [targetIndex, targetPile] of this._playPiles.entries()) {
+      if (targetPile.empty) {
+        for (const [index, pile] of this._playPiles.entries()) {
+          //giver fejl (value undefined)- der skal være hidden cards
+          const visible = pile.getVisibleCards();
+          const bottom = visible[0];
+          if(blackKing&&!redKing){
+            if (
+              bottom &&
+              bottom.value === "King" && (bottom.suit==="Clubs"||bottom.suit==="Spades") &&
+              (viableKingMove === null ||
+                hiddenCardsBehindKing === null ||
+                pile.numberHiddenCards() >= hiddenCardsBehindKing)
+            ) {
+              hiddenCardsBehindKing = pile.numberHiddenCards();
+              // A King isn't moved if there aren't any hidden cards behind it
+              console.log(" 2 move black king")
+              if (hiddenCardsBehindKing !== 0) {
+                viableKingMove = {
+                  from: {
+                    pile: "play",
+                    index: index,
+                  },
+                  to: {
+                    pile: "play",
+                    index: targetIndex,
+                  },
+                  amount: visible.length,
+                };
+              }
+            }
+          }
+          else if(redKing&&!blackKing){
+            if (
+              bottom &&
+              bottom.value === "King" && (bottom.suit==="Diamonds"||bottom.suit==="Hearts")&&
+              (viableKingMove === null ||
+                hiddenCardsBehindKing === null ||
+                pile.numberHiddenCards() >= hiddenCardsBehindKing)
+            ) {
+              hiddenCardsBehindKing = pile.numberHiddenCards();
+              // A King isn't moved if there aren't any hidden cards behind it
+              if (hiddenCardsBehindKing !== 0) {
+                console.log(" 2 move red king")
+                viableKingMove = {
+                  from: {
+                    pile: "play",
+                    index: index,
+                  },
+                  to: {
+                    pile: "play",
+                    index: targetIndex,
+                  },
+                  amount: visible.length,
+                };
+              }
+            }
+          }
+          else{
+          if (
+            bottom &&
+            bottom.value === "King" &&
+            (viableKingMove === null ||
+              hiddenCardsBehindKing === null ||
+              pile.numberHiddenCards() >= hiddenCardsBehindKing)
+          ) {
+            hiddenCardsBehindKing = pile.numberHiddenCards();
+            // A King isn't moved if there aren't any hidden cards behind it
+            if (hiddenCardsBehindKing !== 0) {
+              console.log("2 move any king")
+              viableKingMove = {
+                from: {
+                  pile: "play",
+                  index: index,
+                },
+                to: {
+                  pile: "play",
+                  index: targetIndex,
+                },
+                amount: visible.length,
+              };
+            }
+          }
+        }
+      }
+        if (viableKingMove) return viableKingMove;
+      }
+    }
+  }
+
+
+  public drawpileKingToEmpty(){
+    for (const [index, pile] of this._playPiles.entries()) {
+      if (pile.empty) {
+        console.log("drawpile king to empty playpile");
+        return {
+          from: {
+            pile: "draw",
+            index: 0,
+          },
+          to: {
+            pile: "play",
+            index,
+          },
+        };
+      }
+    }
   }
 
   public isGameWon(): boolean {
