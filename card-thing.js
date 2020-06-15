@@ -601,7 +601,7 @@ var Game = /** @class */ (function () {
             console.log(" 1 move red king");
             this.moveKingToEmpty(true, false);
         }
-        else {
+        else if (this.replacementKing()) {
             console.log(" 1 move whatever king");
             this.moveKingToEmpty(false, false);
         }
