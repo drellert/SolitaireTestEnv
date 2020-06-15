@@ -703,17 +703,11 @@ var Game = /** @class */ (function () {
             //        be cautious in your decision. Look at the color of the blocking cards and make the
             //        appropriate color choice. For example, if you have a red Jack that blocks some hidden
             //        cards, you have to select a red King and than wait for a black Queen.
-<<<<<<< HEAD
-            // Move top cards to foundation
-            for (var _11 = __values(this._foundationPiles.entries()), _12 = _11.next(); !_12.done; _12 = _11.next()) {
-                var _13 = __read(_12.value, 2), foundationIndex = _13[0], foundationPile = _13[1];
-=======
             // Move cards from play piles and draw pile to foundation
             // TODO: extra checks before moving cards (e.g. cards from one red suit and one black suit
             // "buddy up")
-            for (var _20 = __values(this._foundationPiles.entries()), _21 = _20.next(); !_21.done; _21 = _20.next()) {
-                var _22 = __read(_21.value, 2), foundationIndex = _22[0], foundationPile = _22[1];
->>>>>>> 62d3285c3713ea6b287a1abb5c1c36940689f1b0
+            for (var _11 = __values(this._foundationPiles.entries()), _12 = _11.next(); !_12.done; _12 = _11.next()) {
+                var _13 = __read(_12.value, 2), foundationIndex = _13[0], foundationPile = _13[1];
                 if (foundationPile.top) {
                     try {
                         for (var _14 = (e_15 = void 0, __values(this._playPiles.entries())), _15 = _14.next(); !_15.done; _15 = _14.next()) {
