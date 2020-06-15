@@ -176,12 +176,13 @@ class DrawPile extends Pile {
   public removeTop = () => {
     if (this.cards.length === 0) return undefined;
     const cardRemoved = this.cards.splice(this.index, 1)[0];
-    this.index = (this.index + 1) % (this.cards.length - 1);
+    this.index = (this.index === 0) ? 0 : this.index - 1;
     return cardRemoved;
   };
 
   public shift = () =>
-    (this.index = (this.index + 1) % (this.cards.length - 1));
+    (this.index =
+      this.cards.length === 1 ? 0 : (this.index + 1) % (this.cards.length));
 }
 
 function shuffle<T>(array: T[]): T[] {
@@ -275,7 +276,7 @@ class Game {
         .map((p) => p.top?.toString() ?? "Empty")
         .reduce((pV, v) => `${pV} ${v}`)} \nPlay Piles: ${this._playPiles
         .map((p) => `\n${p.toString()}`)
-        .reduce((pV, v) => `${pV} ${v}`)}\n\n`
+        .reduce((pV, v) => `${pV}${v} `)}\n\n`
     );
   }
 
@@ -347,7 +348,7 @@ class Game {
   }
 
   public replacementKing(): boolean {
-    if (this._drawPile.top.value === "King") return true;
+    if (this._drawPile.top && this._drawPile.top.value === "King") return true;
     else {
       for (const pile of this._playPiles) {
         const visible = pile.getVisibleCards();
@@ -544,7 +545,9 @@ class Game {
     //        appropriate color choice. For example, if you have a red Jack that blocks some hidden
     //        cards, you have to select a red King and than wait for a black Queen.
 
-    // Move top cards to foundation
+    // Move cards from play piles and draw pile to foundation
+    // TODO: extra checks before moving cards (e.g. cards from one red suit and one black suit
+    // "buddy up")
     for (const [
       foundationIndex,
       foundationPile,
@@ -564,6 +567,19 @@ class Game {
               },
             };
           }
+        }
+        if (this.drawPile.top && foundationPile.canAdd(this.drawPile.top)) {
+          console.log("Drawpile cards to foundation");
+          return {
+            from: {
+              pile: "draw",
+              index: 0,
+            },
+            to: {
+              pile: "foundation",
+              index: foundationIndex,
+            },
+          };
         }
       }
     }
