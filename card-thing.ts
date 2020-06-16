@@ -1,5 +1,4 @@
 import * as read from "readline-sync";
-import { isNull } from "util";
 
 const suits = <const>["Hearts", "Spades", "Clubs", "Diamonds"];
 type Suit = typeof suits[number];
@@ -142,6 +141,10 @@ abstract class Pile {
     return this.cards.length === 0;
   }
 
+  public get oneCardLeft() {
+    return this.cards.length === 1;
+  }
+
   public toString = () =>
     this.cards.length === 0
       ? "Empty"
@@ -176,13 +179,13 @@ class DrawPile extends Pile {
   public removeTop = () => {
     if (this.cards.length === 0) return undefined;
     const cardRemoved = this.cards.splice(this.index, 1)[0];
-    this.index = (this.index === 0) ? 0 : this.index - 1;
+    this.index = this.index === 0 ? 0 : this.index - 1;
     return cardRemoved;
   };
 
   public shift = () =>
     (this.index =
-      this.cards.length === 1 ? 0 : (this.index + 1) % (this.cards.length));
+      this.cards.length === 1 ? 0 : (this.index + 1) % this.cards.length);
 }
 
 function shuffle<T>(array: T[]): T[] {
@@ -303,7 +306,7 @@ class Game {
     //If both the draw pile is set as both the from and to piles, the draw pile is shifted
     if (fromPile instanceof DrawPile && toPile instanceof DrawPile) {
       this.drawPile.shift();
-      console.log(`Shifting draw pile.`);
+      //console.log(`Shifting draw pile.`);
       return;
     }
     if (amount > 1) {
@@ -319,13 +322,13 @@ class Game {
                     , stack is currently ${toPile.toString()}`
         );
       toPile.addSeveral(cards);
-      console.log(
+      /* console.log(
         `Moving ${cards
           .map((c) => c.toString())
           .reduce((pV, v) => `${pV} ${v}`)} from pile: ${from.pile} ${
           from.index + 1
         }, to pile: ${to.pile} ${to.index + 1}.`
-      );
+      ); */
     } else {
       const card = fromPile.removeTop();
       if (!toPile.canAdd(card))
@@ -337,11 +340,11 @@ class Game {
           })} cannot recive card ${card.toString()}, stack is currently ${toPile.toString()}`
         );
       toPile.add(card);
-      console.log(
+      /* console.log(
         `Moving ${card.toString()} from pile: ${from.pile} ${
           from.index + 1
         }, to pile: ${to.pile} ${to.index + 1}.`
-      );
+      ); */
     }
     //gav fejl
     if (fromPile.top && !fromPile.top.visible) fromPile.top.visible = true;
@@ -351,11 +354,9 @@ class Game {
     if (this._drawPile.top && this._drawPile.top.value === "King") return true;
     else {
       for (const pile of this._playPiles) {
-        const visible = pile.getVisibleCards();
+        const bottom = pile.getVisibleCards()[0];
         const hiddenCards = pile.numberHiddenCards();
-        for (const card of visible) {
-          if (card.value === "King" && hiddenCards !== 0) return true;
-        }
+        if (bottom && bottom.value === "King" && hiddenCards !== 0) return true;
       }
     }
     return false;
@@ -363,7 +364,7 @@ class Game {
 
   public suggestMove(): Move {
     // Strategy taken from https://www.bvssolitaire.com/rules/klondike-solitaire-strategy.htm
-    console.log("Choosing move...");
+    // console.log("Choosing move...\n");
     // Tip 1: We assume that a card from the draw pile is always turned up, as long as the
     //        drawpile isn't empty.
 
@@ -394,7 +395,6 @@ class Game {
     if (this.drawPile.top?.value === "Ace" || this.drawPile.top?.value === 2) {
       for (const [pileIndex, pile] of this._foundationPiles.entries()) {
         if (pile.canAdd(this.drawPile.top)) {
-          console.log("Drawpile ace or deuce to foundation");
           return {
             from: {
               pile: "draw",
@@ -451,7 +451,6 @@ class Game {
     if (this.drawPile.top?.value === "King") {
       for (const [index, pile] of this._playPiles.entries()) {
         if (pile.empty) {
-          console.log("drawpile king to empty playpile");
           return {
             from: {
               pile: "draw",
@@ -469,8 +468,6 @@ class Game {
     // Tip 3: Expose hidden cards from the play pile with the most hidden cards
     let hiddenCards: number = null;
     let viableMove: Move = null;
-    let fromString = "";
-    let toString = "";
 
     for (const [index, pile] of this._playPiles.entries()) {
       if (!pile.empty) {
@@ -490,8 +487,6 @@ class Game {
 
               // Tip 5: A play pile is only emptied if there is a King to put in it
               if (hiddenCards !== 0 || this.replacementKing()) {
-                fromString = bottom.toString();
-                toString = targetPile.top?.toString();
                 viableMove = {
                   from: {
                     pile: "play",
@@ -509,12 +504,7 @@ class Game {
         }
       }
     }
-    if (viableMove) {
-      console.log(
-        "Playpile card(" + fromString + ") to other playpile card " + toString
-      );
-      return viableMove;
-    }
+    if (viableMove) return viableMove;
 
     // Tip 3: The best move provides you opportunity to make other moves or expose hidden cards
     // We see if a card from the draw pile can be added to the play piles
@@ -522,7 +512,6 @@ class Game {
     if (topDraw) {
       for (const [index, pile] of this._playPiles.entries()) {
         if (pile.canAdd(topDraw)) {
-          console.log("Drawpile card to playpile");
           return {
             from: {
               pile: "draw",
@@ -552,7 +541,6 @@ class Game {
       if (foundationPile.top) {
         for (const [playIndex, playPile] of this._playPiles.entries()) {
           if (playPile.top && foundationPile.canAdd(playPile.top)) {
-            console.log("Playpile cards to foundation");
             return {
               from: {
                 pile: "play",
@@ -566,7 +554,6 @@ class Game {
           }
         }
         if (this.drawPile.top && foundationPile.canAdd(this.drawPile.top)) {
-          console.log("Drawpile cards to foundation");
           return {
             from: {
               pile: "draw",
@@ -583,7 +570,7 @@ class Game {
     // If no other move is found, the shifting of the draw pile is suggested.
     // This will create a loop, if the user continues to use the program, since we don't save an
     // internal state and therefore can't adjust the suggestion accordingly.
-    if (!this.drawPile.empty) {
+    if (!this.drawPile.oneCardLeft) {
       return {
         from: {
           pile: "draw",
@@ -594,13 +581,10 @@ class Game {
           index: 0,
         },
       };
-    } else {
-      // Do something
     }
 
     //No moves possible
     console.log("No move was possible");
-    console.log("You lost, ignore errors");
     return null;
   }
 
@@ -624,44 +608,39 @@ const moveString = `Type your desired move:
                     \n\'draw+\' for the draw pile.
                     \n\'play+\' followed by a number 1-7 for the seven play piles. If you want to move several cards, add the number of cards to the end of your move.
                     \n\'foundation+\' followed by a number 1-4 for the four foundation piles.\n`;
+// PLAY MANUALLY:
 /*
 const g = new Game();
 g.printStatus();
 
 while (g.gameOver === false) {
-  g.doMove(g.suggestMove());
-  
-let move = read.question(moveString).split(" ");
+  let move = read.question(moveString).split(" ");
 
-switch (move[0]) {
-  case "SD":
-    g.drawPile.shift();
-    break;
-  case "M":
-    const fromPile = move[1].split("+");
-    const toPile = move[2].split("+");
-    const numOfCards = move.length === 4 ? parseInt(move[3]) : 1;
-    g.doMove(
-      {
-        from: {
-          pile: fromPile[0] as PileType,
-          index: parseInt(fromPile[1]) - 1 ?? -1,
+  switch (move[0]) {
+    case "SD":
+      g.drawPile.shift();
+      break;
+    case "M":
+      const fromPile = move[1].split("+");
+      const toPile = move[2].split("+");
+      const numOfCards = move.length === 4 ? parseInt(move[3]) : 1;
+      g.doMove(
+        {
+          from: {
+            pile: fromPile[0] as PileType,
+            index: parseInt(fromPile[1]) - 1 ?? -1,
+          },
+          to: {
+            pile: toPile[0] as PileType,
+            index: parseInt(toPile[1]) - 1 ?? -1,
+          },
         },
-        to: {
-          pile: toPile[0] as PileType,
-          index: parseInt(toPile[1]) - 1 ?? -1,
-        },
-        
-      },
-      
-    );
-    break;
-  case "X":
-    g.gameOver = true;
-    break;
-    
-}
-
+      );
+      break;
+    case "X":
+      g.gameOver = true;
+      break;    
+  }
 
   g.printStatus();
   if (g.isGameWon()) g.gameOver = true;
@@ -669,24 +648,60 @@ switch (move[0]) {
 if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
 */
+
+// PLAY AUTOMATICALLY WITH SUGGESTED MOVES:
+/* 
+const g = new Game()
+let drawShift = 0;
+g.printStatus();
+
+while (g.gameOver === false) {
+  const move = g.suggestMove()
+  if (move) {
+    g.doMove(move)
+    if (move.from.pile === "draw" && move.to.pile === "draw") {
+      drawShift++;
+      console.log(`The draw pile has been shifted ${drawShift} time(s) in a row.`)
+    } else drawShift = 0;
+    g.printStatus()
+  } else g.gameOver = true
+  if (g.isGameWon()) g.gameOver = true
+}
+
+if (g.isGameWon()) console.log(`Congratulations, you won!`);
+else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
+ */
+
+ 
+// PLAY SEVERAL GAMES AUTOMATICALLY:
 let i = 0;
 let gamesWon = 0;
-while(i<1000){
+while (i < 1000) {
+  const g = new Game();
   let numMoves = 0;
-  let g = new Game();
-  while (true) {
-    g.doMove(g.suggestMove());
-    numMoves++;
-    console.log(numMoves);
-    //limit to moves
-    if(numMoves>500){
-      break;
-    }
-    if (g.isGameWon()){
-       gamesWon++;
-       break;
+  let drawShift = 0;
+  while (!g.gameOver) {
+    if (drawShift > 24) {
+      g.gameOver = true;
+    } else {
+      const move = g.suggestMove();
+      if (move !== null) {
+        g.doMove(move);
+        numMoves++;
+        if (move.from.pile === "draw" && move.to.pile === "draw") {
+          drawShift++;
+        } else drawShift = 0;
+      } else g.gameOver = true;
+      if (g.isGameWon()) {
+        g.gameOver = true;
+        gamesWon++;
+      }
     }
   }
+  const winLoseString = g.isGameWon() ? "won!" : "lost.";
+  console.log(`Game #${i + 1} ${winLoseString} ${numMoves} moves made.`);
   i++;
-  console.log("Games won "+(gamesWon/i)*100+" %. Total games "+ i +". Total games won = "+gamesWon);
 }
+console.log(
+  `${gamesWon} games won out of ${i} played (${(gamesWon / i) * 100} %).`
+);
