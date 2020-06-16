@@ -157,8 +157,8 @@ var Pile = /** @class */ (function () {
         this.removeSeveral = function (numOfCards) {
             if (numOfCards > _this.cards.length)
                 return;
-            for (var i = 1; i <= numOfCards; i++) {
-                if (!_this.cards[_this.cards.length - i].visible)
+            for (var i_1 = 1; i_1 <= numOfCards; i_1++) {
+                if (!_this.cards[_this.cards.length - i_1].visible)
                     return;
             }
             return _this.cards.splice(-numOfCards);
@@ -792,6 +792,7 @@ var Game = /** @class */ (function () {
         //No moves possible
         console.log("No move was possible");
         console.log("You lost, ignore errors");
+        return null;
     };
     Game.prototype.isGameWon = function () {
         var _a, _b, _c, _d;
@@ -806,48 +807,70 @@ var Game = /** @class */ (function () {
     return Game;
 }());
 var moveString = "Type your desired move:\n                    \n - 'SD': Shift drawpile\n                    \n - 'M x y': Move card from x to y\n                    \n - 'X': Exit game\n                    \n\nPiles should be named as follows:\n                    \n'draw+' for the draw pile.\n                    \n'play+' followed by a number 1-7 for the seven play piles. If you want to move several cards, add the number of cards to the end of your move.\n                    \n'foundation+' followed by a number 1-4 for the four foundation piles.\n";
-var g = new Game();
+/*
+const g = new Game();
 g.printStatus();
+
 while (g.gameOver === false) {
-    g.doMove(g.suggestMove());
-    /*
-  let move = read.question(moveString).split(" ");
+  g.doMove(g.suggestMove());
   
-  switch (move[0]) {
-    case "SD":
-      g.drawPile.shift();
-      break;
-    case "M":
-      const fromPile = move[1].split("+");
-      const toPile = move[2].split("+");
-      const numOfCards = move.length === 4 ? parseInt(move[3]) : 1;
-      g.doMove(
-        {
-          from: {
-            pile: fromPile[0] as PileType,
-            index: parseInt(fromPile[1]) - 1 ?? -1,
-          },
-          to: {
-            pile: toPile[0] as PileType,
-            index: parseInt(toPile[1]) - 1 ?? -1,
-          },
-          
+let move = read.question(moveString).split(" ");
+
+switch (move[0]) {
+  case "SD":
+    g.drawPile.shift();
+    break;
+  case "M":
+    const fromPile = move[1].split("+");
+    const toPile = move[2].split("+");
+    const numOfCards = move.length === 4 ? parseInt(move[3]) : 1;
+    g.doMove(
+      {
+        from: {
+          pile: fromPile[0] as PileType,
+          index: parseInt(fromPile[1]) - 1 ?? -1,
+        },
+        to: {
+          pile: toPile[0] as PileType,
+          index: parseInt(toPile[1]) - 1 ?? -1,
         },
         
-      );
-      break;
-    case "X":
-      g.gameOver = true;
-      break;
+      },
       
-  }
-  */
-    g.printStatus();
-    if (g.isGameWon())
-        g.gameOver = true;
+    );
+    break;
+  case "X":
+    g.gameOver = true;
+    break;
+    
 }
-if (g.isGameWon())
-    console.log("Congratulations, you won!");
-else if (!g.isGameWon())
-    console.log("Dumbass, you lost.");
+
+
+  g.printStatus();
+  if (g.isGameWon()) g.gameOver = true;
+}
+if (g.isGameWon()) console.log(`Congratulations, you won!`);
+else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
+*/
+var i = 0;
+var gamesWon = 0;
+while (i < 1000) {
+    var numMoves = 0;
+    var g = new Game();
+    while (true) {
+        g.doMove(g.suggestMove());
+        numMoves++;
+        console.log(numMoves);
+        //limit to moves
+        if (numMoves > 500) {
+            break;
+        }
+        if (g.isGameWon()) {
+            gamesWon++;
+            break;
+        }
+    }
+    i++;
+    console.log("Games won " + (gamesWon / i) * 100 + " %. Total games " + i + ". Total games won = " + gamesWon);
+}
 //# sourceMappingURL=card-thing.js.map

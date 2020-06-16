@@ -601,6 +601,7 @@ class Game {
     //No moves possible
     console.log("No move was possible");
     console.log("You lost, ignore errors");
+    return null;
   }
 
   public isGameWon(): boolean {
@@ -623,13 +624,13 @@ const moveString = `Type your desired move:
                     \n\'draw+\' for the draw pile.
                     \n\'play+\' followed by a number 1-7 for the seven play piles. If you want to move several cards, add the number of cards to the end of your move.
                     \n\'foundation+\' followed by a number 1-4 for the four foundation piles.\n`;
-
+/*
 const g = new Game();
 g.printStatus();
 
 while (g.gameOver === false) {
   g.doMove(g.suggestMove());
-  /*
+  
 let move = read.question(moveString).split(" ");
 
 switch (move[0]) {
@@ -660,10 +661,32 @@ switch (move[0]) {
     break;
     
 }
-*/
+
 
   g.printStatus();
   if (g.isGameWon()) g.gameOver = true;
 }
 if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
+*/
+let i = 0;
+let gamesWon = 0;
+while(i<1000){
+  let numMoves = 0;
+  let g = new Game();
+  while (true) {
+    g.doMove(g.suggestMove());
+    numMoves++;
+    console.log(numMoves);
+    //limit to moves
+    if(numMoves>500){
+      break;
+    }
+    if (g.isGameWon()){
+       gamesWon++;
+       break;
+    }
+  }
+  i++;
+  console.log("Games won "+(gamesWon/i)*100+" %. Total games "+ i +". Total games won = "+gamesWon);
+}
