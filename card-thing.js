@@ -157,8 +157,8 @@ var Pile = /** @class */ (function () {
         this.removeSeveral = function (numOfCards) {
             if (numOfCards > _this.cards.length)
                 return;
-            for (var i = 1; i <= numOfCards; i++) {
-                if (!_this.cards[_this.cards.length - i].visible)
+            for (var i_1 = 1; i_1 <= numOfCards; i_1++) {
+                if (!_this.cards[_this.cards.length - i_1].visible)
                     return;
             }
             return _this.cards.splice(-numOfCards);
@@ -650,7 +650,7 @@ var Game = /** @class */ (function () {
             }
             // Tip 5: Move King from draw pile to empty play pile
             if (((_0 = this.drawPile.top) === null || _0 === void 0 ? void 0 : _0.value) === "King"
-                //kun sorte kor
+                //kun sorte kort
                 && (((_1 = this.drawPile.top) === null || _1 === void 0 ? void 0 : _1.suit) === ("Clubs" || "Spades"))) {
                 try {
                     for (var _24 = __values(this._playPiles.entries()), _25 = _24.next(); !_25.done; _25 = _24.next()) {
@@ -695,6 +695,7 @@ var Game = /** @class */ (function () {
                                 var bottom = visible[0];
                                 if (bottom &&
                                     bottom.value === "King"
+                                    //kun røde kort
                                     && (bottom.suit === ("Diamonds" || "Hearts"))
                                     &&
                                         (viableKingMove === null ||
@@ -741,6 +742,7 @@ var Game = /** @class */ (function () {
             }
             // Tip 5: Move King from draw pile to empty play pile
             if (((_2 = this.drawPile.top) === null || _2 === void 0 ? void 0 : _2.value) === "King"
+                //kun røde kort
                 && (((_3 = this.drawPile.top) === null || _3 === void 0 ? void 0 : _3.suit) === ("Diamonds" || "Hearts"))) {
                 try {
                     for (var _33 = __values(this._playPiles.entries()), _34 = _33.next(); !_34.done; _34 = _33.next()) {
@@ -1101,50 +1103,47 @@ switch (move[0]) {
 if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
 */
-/* let i = 0;
-let gamesWon = 0;
-while(i<2000){
-  let numMoves = 0;
-  let g = new Game();
-  while (true) {
-    g.doMove(g.suggestMove());
-    numMoves++;
-    console.log(numMoves);
-    //limit to moves
-    if(numMoves>500){
-      break;
-    }
-    if (g.isGameWon()){
-       gamesWon++;
-       break;
-    }
-  }
-  i++;
-  console.log("Games won "+(gamesWon/i)*100+" %. Total games "+ i +". Total games won = "+gamesWon);
-}
- */
-var g = new Game();
-var drawShift = 0;
-g.printStatus();
-while (g.gameOver === false) {
-    var move = g.suggestMove();
-    if (move) {
-        g.doMove(move);
-        if (move.from.pile === "draw" && move.to.pile === "draw") {
-            drawShift++;
-            console.log("The draw pile has been shifted " + drawShift + " time(s) in a row.");
-        }
-        else
-            drawShift = 0;
+var i = 0;
+var gamesWon = 0;
+while (i < 2000) {
+    var numMoves = 0;
+    var g = new Game();
+    while (true) {
         g.printStatus();
+        g.doMove(g.suggestMove());
+        numMoves++;
+        console.log(numMoves);
+        //limit to moves
+        if (numMoves > 500) {
+            break;
+        }
+        if (g.isGameWon()) {
+            gamesWon++;
+            break;
+        }
     }
-    else
-        g.gameOver = true;
-    if (g.isGameWon())
-        g.gameOver = true;
+    i++;
+    console.log("Games won " + (gamesWon / i) * 100 + " %. Total games " + i + ". Total games won = " + gamesWon);
 }
-if (g.isGameWon())
-    console.log("Congratulations, you won!");
-else if (!g.isGameWon())
-    console.log("Dumbass, you lost.");
+/*
+const g = new Game()
+let drawShift = 0;
+g.printStatus();
+
+while (g.gameOver === false) {
+  const move = g.suggestMove()
+  if (move) {
+    g.doMove(move)
+    if (move.from.pile === "draw" && move.to.pile === "draw") {
+      drawShift++;
+      console.log(`The draw pile has been shifted ${drawShift} time(s) in a row.`)
+    } else drawShift = 0;
+    g.printStatus()
+  } else g.gameOver = true
+  if (g.isGameWon()) g.gameOver = true
+}
+
+if (g.isGameWon()) console.log(`Congratulations, you won!`);
+else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
+*/ 
 //# sourceMappingURL=card-thing.js.map

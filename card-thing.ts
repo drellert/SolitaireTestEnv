@@ -413,6 +413,8 @@ class Game {
     let redKing : boolean = false;
     let blackQueen : boolean =  false;
     let redQueen : boolean = false;
+    let redJack : boolean = false;
+    let blackJack : boolean = false;
 
     if(this.replacementKing()){
       //tjekker drawpile
@@ -447,10 +449,18 @@ class Game {
               blackQueen = true;
             }
           }
+          else if(bottom.value==="Jack"){
+            if(bottom.suit===("Hearts"||"Diamonds")){
+              redJack = true;
+            }
+            else{
+              blackJack = true;
+            }
+          }
         }
       }
     }
-    if(blackKing&&redKing&&redQueen&&!blackQueen){
+    if(blackKing&&redKing&&redQueen&&!blackQueen||blackKing&&redKing&&!redQueen&&!blackQueen&&blackJack&&!redJack){
       console.log(" 1 move black king");
       let hiddenCardsBehindKing: number = null;
       let viableKingMove: Move = null;
@@ -499,7 +509,7 @@ class Game {
    
       // Tip 5: Move King from draw pile to empty play pile
       if (this.drawPile.top?.value === "King" 
-      //kun sorte kor
+      //kun sorte kort
       && (this.drawPile.top?.suit===("Clubs"||"Spades"))
       ) {
         for (const [index, pile] of this._playPiles.entries()) {
@@ -520,7 +530,7 @@ class Game {
       }
     }
   
-    else if(blackKing&&redKing&&!redQueen&&blackQueen){
+    else if(blackKing&&redKing&&!redQueen&&blackQueen||blackKing&&redKing&&!redQueen&&!blackQueen&&!blackJack&&redJack){
       console.log(" 1 move red king");
       let hiddenCardsBehindKing: number = null;
       let viableKingMove: Move = null;
@@ -534,6 +544,7 @@ class Game {
             if (
               bottom &&
               bottom.value === "King"
+              //kun røde kort
               && (bottom.suit===("Diamonds"||"Hearts"))
               &&
             (viableKingMove === null ||
@@ -559,7 +570,7 @@ class Game {
             }
           }
           if (viableKingMove){
-            console.log("drawpile red king to empty playpile");
+            console.log("playpile red king to empty playpile");
             return viableKingMove;
           } 
         }
@@ -567,6 +578,7 @@ class Game {
    
       // Tip 5: Move King from draw pile to empty play pile
       if (this.drawPile.top?.value === "King"
+      //kun røde kort
       && (this.drawPile.top?.suit===("Diamonds"||"Hearts"))
       ) {
         for (const [index, pile] of this._playPiles.entries()) {
@@ -863,12 +875,13 @@ switch (move[0]) {
 if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
 */
-/* let i = 0;
+ let i = 0;
 let gamesWon = 0;
 while(i<2000){
   let numMoves = 0;
   let g = new Game();
   while (true) {
+    g.printStatus();
     g.doMove(g.suggestMove());
     numMoves++;
     console.log(numMoves);
@@ -884,8 +897,8 @@ while(i<2000){
   i++;
   console.log("Games won "+(gamesWon/i)*100+" %. Total games "+ i +". Total games won = "+gamesWon);
 }
- */
-
+ 
+/*
 const g = new Game()
 let drawShift = 0;
 g.printStatus();
@@ -905,3 +918,4 @@ while (g.gameOver === false) {
 
 if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
+*/
