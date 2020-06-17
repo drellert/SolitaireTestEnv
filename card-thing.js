@@ -400,7 +400,7 @@ var Game = /** @class */ (function () {
         //If both the draw pile is set as both the from and to piles, the draw pile is shifted
         if (fromPile instanceof DrawPile && toPile instanceof DrawPile) {
             this.drawPile.shift();
-            //console.log(`Shifting draw pile.`);
+            // console.log(`Shifting draw pile.`); // Removed for testing purposes
             return;
         }
         if (amount > 1) {
@@ -419,7 +419,7 @@ var Game = /** @class */ (function () {
                 .reduce((pV, v) => `${pV} ${v}`)} from pile: ${from.pile} ${
                 from.index + 1
               }, to pile: ${to.pile} ${to.index + 1}.`
-            ); */
+            ); */ // Removed for testing purposes
         }
         else {
             var card = fromPile.removeTop();
@@ -435,7 +435,7 @@ var Game = /** @class */ (function () {
               `Moving ${card.toString()} from pile: ${from.pile} ${
                 from.index + 1
               }, to pile: ${to.pile} ${to.index + 1}.`
-            ); */
+            ); */ // Removed for testing purposes
         }
         //gav fejl
         if (fromPile.top && !fromPile.top.visible)
@@ -467,12 +467,12 @@ var Game = /** @class */ (function () {
     };
     Game.prototype.suggestMove = function () {
         // Strategy taken from https://www.bvssolitaire.com/rules/klondike-solitaire-strategy.htm
-        // console.log("Choosing move...\n");
-        // Tip 1: We assume that a card from the draw pile is always turned up, as long as the
-        //        drawpile isn't empty.
         var e_6, _a, e_7, _b, e_8, _c, e_9, _d, e_10, _e, e_11, _f, e_12, _g, e_13, _h, e_14, _j, e_15, _k, e_16, _l;
         var _m, _o, _p, _q, _r;
         try {
+            // console.log("Choosing move...\n"); // Removed for testing purposes
+            // Tip 1: We assume that a card from the draw pile is always turned up, as long as the
+            //        drawpile isn't empty.
             // Tip 2A: Move available cards (Aces and Deuces) from play pile to foundation pile
             for (var _s = __values(this._playPiles.entries()), _t = _s.next(); !_t.done; _t = _s.next()) {
                 var _u = __read(_t.value, 2), playPileIndex = _u[0], playPile = _u[1];
@@ -779,7 +779,7 @@ var Game = /** @class */ (function () {
             };
         }
         //No moves possible
-        console.log("No move was possible");
+        //console.log("No move was possible"); // Removed for testing purposes
         return null;
     };
     Game.prototype.isGameWon = function () {
@@ -861,7 +861,7 @@ else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
 var i = 0;
 var gamesWon = 0;
 var totalMovesFromGamesWon = 0;
-while (i < 1000) {
+while (i < 10000) {
     var g = new Game();
     var numMoves = 0;
     var drawShift = 0;

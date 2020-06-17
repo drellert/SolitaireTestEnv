@@ -306,7 +306,7 @@ class Game {
     //If both the draw pile is set as both the from and to piles, the draw pile is shifted
     if (fromPile instanceof DrawPile && toPile instanceof DrawPile) {
       this.drawPile.shift();
-      //console.log(`Shifting draw pile.`); // Removed for testing purposes
+      // console.log(`Shifting draw pile.`); // Removed for testing purposes
       return;
     }
     if (amount > 1) {
@@ -679,7 +679,7 @@ else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
 let i = 0;
 let gamesWon = 0;
 let totalMovesFromGamesWon = 0;
-while (i < 1000) {
+while (i < 10000) {
   const g = new Game();
   let numMoves = 0;
   let drawShift = 0;
