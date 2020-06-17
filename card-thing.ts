@@ -132,15 +132,18 @@ abstract class Pile {
 
   public fillPile = (cards: Card[]) => (this.cards = cards);
 
-  public getVisibleCards = (): Card[] => {
-    let visibleCards: Card[] = [];
-    for (const card of this.cards) {
-      if (card.visible) visibleCards.push(card);
-    }
-    return visibleCards ?? [];
-  };
+  public getVisibleCards = (): Card[] => this.cards.filter((c) => c.visible);
 
-  public numberHiddenCards = () => this.cards.filter((c) => !c.visible).length;
+  public numberHiddenCards = (): number =>
+    this.cards.filter((c) => !c.visible).length;
+
+  public get empty() {
+    return this.cards.length === 0;
+  }
+
+  public get oneCardLeft() {
+    return this.cards.length === 1;
+  }
 
   public toString = () =>
     this.cards.length === 0
@@ -151,8 +154,8 @@ abstract class Pile {
 class FoundationPile extends Pile {
   public canAdd = (card: Card) =>
     (this.top === null && card.value === "Ace") ||
-    (card.suit === this.top.suit &&
-      isValueNextOnResult(this.top.value, card.value));
+    (card.suit === this.top?.suit &&
+      isValueNextOnResult(this.top?.value, card.value));
 
   public isFull = (): boolean => this.cards.length === values.length;
 }
@@ -160,8 +163,8 @@ class FoundationPile extends Pile {
 class PlayPile extends Pile {
   public canAdd = (card: Card) =>
     (this.top === null && card.value === "King") ||
-    (isSuitOpposite(this.top.suit, card.suit) &&
-      isValueNextOnPlay(this.top.value, card.value));
+    (isSuitOpposite(this.top?.suit, card.suit) &&
+      isValueNextOnPlay(this.top?.value, card.value));
 }
 
 class DrawPile extends Pile {
@@ -176,12 +179,13 @@ class DrawPile extends Pile {
   public removeTop = () => {
     if (this.cards.length === 0) return undefined;
     const cardRemoved = this.cards.splice(this.index, 1)[0];
-    this.index = (this.index + 1) % (this.cards.length - 1);
+    this.index = this.index === 0 ? 0 : this.index - 1;
     return cardRemoved;
   };
 
   public shift = () =>
-    (this.index = (this.index + 1) % (this.cards.length - 1));
+    (this.index =
+      this.cards.length === 1 ? 0 : (this.index + 1) % this.cards.length);
 }
 
 function shuffle<T>(array: T[]): T[] {
@@ -214,7 +218,7 @@ interface MovePile {
 export interface Move {
   from: MovePile;
   to: MovePile;
-  amount?: number
+  amount?: number;
 }
 
 class Game {
@@ -274,8 +278,8 @@ class Game {
       } \t\t Foundation Piles: ${this._foundationPiles
         .map((p) => p.top?.toString() ?? "Empty")
         .reduce((pV, v) => `${pV} ${v}`)} \nPlay Piles: ${this._playPiles
-        .map((p) => p.top?.toString() ?? "Empty")
-        .reduce((pV, v) => `${pV} ${v}`)}\n\n`
+        .map((p) => `\n${p.toString()}`)
+        .reduce((pV, v) => `${pV}${v} `)}\n\n`
     );
   }
 
@@ -299,6 +303,12 @@ class Game {
           to,
         })}`
       );
+    //If both the draw pile is set as both the from and to piles, the draw pile is shifted
+    if (fromPile instanceof DrawPile && toPile instanceof DrawPile) {
+      this.drawPile.shift();
+      // console.log(`Shifting draw pile.`); // Removed for testing purposes
+      return;
+    }
     if (amount > 1) {
       const cards = fromPile.removeSeveral(amount);
       if (!toPile.canAdd(cards[0]))
@@ -306,114 +316,278 @@ class Game {
           `Illegal move, pile for move ${JSON.stringify({
             from,
             to,
-          })} cannot recive card ${cards
+          })} cannot recive cards ${cards
             .map((c) => c.toString())
             .reduce((pV, v) => `${pV} ${v}`)}
                     , stack is currently ${toPile.toString()}`
         );
       toPile.addSeveral(cards);
+      /* console.log(
+        `Moving ${cards
+          .map((c) => c.toString())
+          .reduce((pV, v) => `${pV} ${v}`)} from pile: ${from.pile} ${
+          from.index + 1
+        }, to pile: ${to.pile} ${to.index + 1}.`
+      ); */ // Removed for testing purposes
     } else {
       const card = fromPile.removeTop();
       if (!toPile.canAdd(card))
         throw new Error(
+          //fik dette error
           `Illegal move, pile for move ${JSON.stringify({
             from,
             to,
           })} cannot recive card ${card.toString()}, stack is currently ${toPile.toString()}`
         );
       toPile.add(card);
+      /* console.log(
+        `Moving ${card.toString()} from pile: ${from.pile} ${
+          from.index + 1
+        }, to pile: ${to.pile} ${to.index + 1}.`
+      ); */ // Removed for testing purposes
     }
-    if (!fromPile.top.visible) fromPile.top.visible = true;
+    //gav fejl
+    if (fromPile.top && !fromPile.top.visible) fromPile.top.visible = true;
+  }
+
+  public replacementKing(): boolean {
+    if (this._drawPile.top && this._drawPile.top.value === "King") return true;
+    else {
+      for (const pile of this._playPiles) {
+        const bottom = pile.getVisibleCards()[0];
+        const hiddenCards = pile.numberHiddenCards();
+        if (bottom && bottom.value === "King" && hiddenCards !== 0) return true;
+      }
+    }
+    return false;
   }
 
   public suggestMove(): Move {
-    // Step 1: available cards to foundation
-    for (const [pileIndex, pile] of this._foundationPiles.entries()) {
-      const top = pile.top;
-      if (top) {
-        const { suit, value } = top;
-        for (const [index, playPile] of this._playPiles.entries()) {
-          if (
-            playPile.top?.suit === suit &&
-            isValueNextOnResult(playPile.top?.value, value)
-          ) {
+    // Strategy taken from https://www.bvssolitaire.com/rules/klondike-solitaire-strategy.htm
+
+    // console.log("Choosing move...\n"); // Removed for testing purposes
+
+    // Tip 1: We assume that a card from the draw pile is always turned up, as long as the
+    //        drawpile isn't empty.
+
+    // Tip 2A: Move available cards (Aces and Deuces) from play pile to foundation pile
+    for (const [playPileIndex, playPile] of this._playPiles.entries()) {
+      if (playPile.top?.value === "Ace" || playPile.top?.value === 2) {
+        for (const [
+          foundationPileIndex,
+          foundationPile,
+        ] of this._foundationPiles.entries()) {
+          if (foundationPile.canAdd(playPile.top)) {
             return {
               from: {
                 pile: "play",
-                index,
+                index: playPileIndex,
               },
               to: {
                 pile: "foundation",
-                index: pileIndex,
-              },
-            };
-          }
-        }
-      } else {
-        for (const [index, playPile] of this._playPiles.entries()) {
-          if (playPile.top?.value === "Ace") {
-            return {
-              from: {
-                pile: "play",
-                index,
-              },
-              to: {
-                pile: "foundation",
-                index: pileIndex,
+                index: foundationPileIndex,
               },
             };
           }
         }
       }
     }
-    // Step 2: expose hidden cards from column with the most hidden cards
-    let hiddenCards: number = null;
-    let viableMove: Move = null;
-    for (const [index, pile] of this._playPiles.entries()) {
-      if (hiddenCards === null || pile.numberHiddenCards() > hiddenCards) {
-        const visible = pile.getVisibleCards();
-        const bottom = visible[visible.length - 1];
-        if (bottom) {
-          // Now we check if this bottom card can be moved somewhere else
-          for (const [targetIndex, targetPile] of this._playPiles.entries()) {
-            if (targetIndex !== index && targetPile.canAdd(bottom)) {
-              viableMove = {
+
+    // Tip 2B: Move available cards (Aces and Deuces) from draw pile to foundation pile
+    if (this.drawPile.top?.value === "Ace" || this.drawPile.top?.value === 2) {
+      for (const [pileIndex, pile] of this._foundationPiles.entries()) {
+        if (pile.canAdd(this.drawPile.top)) {
+          return {
+            from: {
+              pile: "draw",
+              index: 0,
+            },
+            to: {
+              pile: "foundation",
+              index: pileIndex,
+            },
+          };
+        }
+      }
+    }
+
+    // Tip 5: Move King from play pile to empty play pile
+    let hiddenCardsBehindKing: number = null;
+    let viableKingMove: Move = null;
+
+    for (const [targetIndex, targetPile] of this._playPiles.entries()) {
+      if (targetPile.empty) {
+        for (const [index, pile] of this._playPiles.entries()) {
+          //giver fejl (value undefined)- der skal være hidden cards
+          const visible = pile.getVisibleCards();
+          const bottom = visible[0];
+          if (
+            bottom &&
+            bottom.value === "King" &&
+            (viableKingMove === null ||
+              hiddenCardsBehindKing === null ||
+              pile.numberHiddenCards() >= hiddenCardsBehindKing)
+          ) {
+            hiddenCardsBehindKing = pile.numberHiddenCards();
+            // A King isn't moved if there aren't any hidden cards behind it
+            if (hiddenCardsBehindKing !== 0) {
+              viableKingMove = {
                 from: {
                   pile: "play",
-                  index,
+                  index: index,
                 },
                 to: {
                   pile: "play",
                   index: targetIndex,
                 },
-                amount: visible.length
+                amount: visible.length,
               };
-              break;
+            }
+          }
+        }
+        if (viableKingMove) return viableKingMove;
+      }
+    }
+
+    // Tip 5: Move King from draw pile to empty play pile
+    if (this.drawPile.top?.value === "King") {
+      for (const [index, pile] of this._playPiles.entries()) {
+        if (pile.empty) {
+          return {
+            from: {
+              pile: "draw",
+              index: 0,
+            },
+            to: {
+              pile: "play",
+              index,
+            },
+          };
+        }
+      }
+    }
+
+    // Tip 3: Expose hidden cards from the play pile with the most hidden cards
+    let hiddenCards: number = null;
+    let viableMove: Move = null;
+
+    for (const [index, pile] of this._playPiles.entries()) {
+      if (!pile.empty) {
+        const visibleCards = pile.getVisibleCards();
+        const bottom = visibleCards[0];
+        if (bottom) {
+          // Now we check if this bottom card can be moved somewhere else
+          for (const [targetIndex, targetPile] of this._playPiles.entries()) {
+            if (
+              targetIndex !== index &&
+              targetPile.canAdd(bottom) &&
+              (viableMove === null ||
+                hiddenCards === null ||
+                pile.numberHiddenCards() >= hiddenCards)
+            ) {
+              hiddenCards = pile.numberHiddenCards();
+
+              // Tip 5: A play pile is only emptied if there is a King to put in it
+              if (hiddenCards !== 0 || this.replacementKing()) {
+                viableMove = {
+                  from: {
+                    pile: "play",
+                    index,
+                  },
+                  to: {
+                    pile: "play",
+                    index: targetIndex,
+                  },
+                  amount: visibleCards.length,
+                };
+              }
             }
           }
         }
       }
     }
-    if (viableMove) return viableMove
-    // Step 3: The best move provides you opportunity to make other moves or expose hidden cards
+    if (viableMove) return viableMove;
+
+    // Tip 3: The best move provides you opportunity to make other moves or expose hidden cards
     // We see if a card from the draw pile can be added to the play piles
-    const topDraw = this._drawPile.top
+    const topDraw = this._drawPile.top;
     if (topDraw) {
-        for (const [index, pile] of this._playPiles.entries()) {
-            if (pile.canAdd(topDraw)) return {
-                from: {
-                    pile: "draw",
-                    index: 0
-                },
-                to: {
-                    pile: "play",
-                    index
-                }
-            }
+      for (const [index, pile] of this._playPiles.entries()) {
+        if (pile.canAdd(topDraw)) {
+          return {
+            from: {
+              pile: "draw",
+              index: 0,
+            },
+            to: {
+              pile: "play",
+              index,
+            },
+          };
         }
+      }
     }
-    // Step 4: Don't empty a tableau pile without a King to replace.
-    // Step 5: Consider carefully whether to fill a space with a  black King or a red King
+
+    // Tip 6: If you have a choice between a black King and a red King to fill a space with,
+    //        be cautious in your decision. Look at the color of the blocking cards and make the
+    //        appropriate color choice. For example, if you have a red Jack that blocks some hidden
+    //        cards, you have to select a red King and than wait for a black Queen.
+
+    // Move cards from play piles and draw pile to foundation
+    // TODO: extra checks before moving cards (e.g. cards from one red suit and one black suit
+    // "buddy up")
+    for (const [
+      foundationIndex,
+      foundationPile,
+    ] of this._foundationPiles.entries()) {
+      if (foundationPile.top) {
+        for (const [playIndex, playPile] of this._playPiles.entries()) {
+          if (playPile.top && foundationPile.canAdd(playPile.top)) {
+            return {
+              from: {
+                pile: "play",
+                index: playIndex,
+              },
+              to: {
+                pile: "foundation",
+                index: foundationIndex,
+              },
+            };
+          }
+        }
+        if (this.drawPile.top && foundationPile.canAdd(this.drawPile.top)) {
+          return {
+            from: {
+              pile: "draw",
+              index: 0,
+            },
+            to: {
+              pile: "foundation",
+              index: foundationIndex,
+            },
+          };
+        }
+      }
+    }
+    // If no other move is found, the shifting of the draw pile is suggested.
+    // This will create a loop, if the user continues to use the program, since we don't save an
+    // internal state and therefore can't adjust the suggestion accordingly.
+    if (!this.drawPile.oneCardLeft) {
+      return {
+        from: {
+          pile: "draw",
+          index: 0,
+        },
+        to: {
+          pile: "draw",
+          index: 0,
+        },
+      };
+    }
+
+    //No moves possible
+    //console.log("No move was possible"); // Removed for testing purposes
+    return null;
   }
 
   public isGameWon(): boolean {
@@ -436,7 +610,8 @@ const moveString = `Type your desired move:
                     \n\'draw+\' for the draw pile.
                     \n\'play+\' followed by a number 1-7 for the seven play piles. If you want to move several cards, add the number of cards to the end of your move.
                     \n\'foundation+\' followed by a number 1-4 for the four foundation piles.\n`;
-
+// PLAY MANUALLY:
+/*
 const g = new Game();
 g.printStatus();
 
@@ -462,17 +637,75 @@ while (g.gameOver === false) {
             index: parseInt(toPile[1]) - 1 ?? -1,
           },
         },
-        numOfCards
       );
       break;
     case "X":
       g.gameOver = true;
-      break;
+      break;    
   }
 
   g.printStatus();
   if (g.isGameWon()) g.gameOver = true;
 }
+if (g.isGameWon()) console.log(`Congratulations, you won!`);
+else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
+*/
+
+// PLAY AUTOMATICALLY WITH SUGGESTED MOVES:
+/* 
+const g = new Game()
+let drawShift = 0;
+g.printStatus();
+
+while (g.gameOver === false) {
+  const move = g.suggestMove()
+  if (move) {
+    g.doMove(move)
+    if (move.from.pile === "draw" && move.to.pile === "draw") {
+      drawShift++;
+      console.log(`The draw pile has been shifted ${drawShift} time(s) in a row.`)
+    } else drawShift = 0;
+    g.printStatus()
+  } else g.gameOver = true
+  if (g.isGameWon()) g.gameOver = true
+}
 
 if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
+ */
+
+ 
+// PLAY SEVERAL GAMES AUTOMATICALLY:
+let i = 0;
+let gamesWon = 0;
+let totalMovesFromGamesWon = 0;
+while (i < 10000) {
+  const g = new Game();
+  let numMoves = 0;
+  let drawShift = 0;
+  while (!g.gameOver) {
+    if (drawShift > 24) {
+      g.gameOver = true;
+    } else {
+      const move = g.suggestMove();
+      if (move !== null) {
+        g.doMove(move);
+        numMoves++;
+        if (move.from.pile === "draw" && move.to.pile === "draw") {
+          drawShift++;
+        } else drawShift = 0;
+      } else g.gameOver = true;
+      if (g.isGameWon()) {
+        g.gameOver = true;
+        gamesWon++;
+        totalMovesFromGamesWon += numMoves;
+      }
+    }
+  }
+  const winLoseString = g.isGameWon() ? "won!" : "lost.";
+  console.log(`Game #${i + 1} ${winLoseString} ${numMoves} moves made.`);
+  i++;
+}
+console.log(
+  `\n${gamesWon} games won out of ${i} played (${(gamesWon / i) * 100} %).\nAn average of ${Math.round(totalMovesFromGamesWon / gamesWon)} moves made in games won.\n`
+);
