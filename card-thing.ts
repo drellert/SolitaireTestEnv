@@ -464,6 +464,7 @@ class Game {
             if (
               bottom &&
               bottom.value === "King" 
+              //kun sorte kort
               && (bottom.suit===("Clubs"||"Spades"))
               &&
             (viableKingMove === null ||
@@ -474,6 +475,7 @@ class Game {
               hiddenCardsBehindKing = pile.numberHiddenCards();
               // A King isn't moved if there aren't any hidden cards behind it
               if (hiddenCardsBehindKing !== 0) {
+
                 viableKingMove = {
                   from: {
                     pile: "play",
@@ -488,17 +490,21 @@ class Game {
               }
             }
           }
-          if (viableKingMove) return viableKingMove;
-        }
+          if (viableKingMove) {
+            console.log("playpile black king to empty playpile");
+            return viableKingMove;
+          }
+          }
       }
    
       // Tip 5: Move King from draw pile to empty play pile
       if (this.drawPile.top?.value === "King" 
+      //kun sorte kor
       && (this.drawPile.top?.suit===("Clubs"||"Spades"))
       ) {
         for (const [index, pile] of this._playPiles.entries()) {
           if (pile.empty) {
-            console.log("drawpile king to empty playpile");
+            console.log("drawpile black king to empty playpile");
             return {
               from: {
                 pile: "draw",
@@ -552,7 +558,10 @@ class Game {
               }
             }
           }
-          if (viableKingMove) return viableKingMove;
+          if (viableKingMove){
+            console.log("drawpile red king to empty playpile");
+            return viableKingMove;
+          } 
         }
       }
    
@@ -562,7 +571,7 @@ class Game {
       ) {
         for (const [index, pile] of this._playPiles.entries()) {
           if (pile.empty) {
-            console.log("drawpile king to empty playpile");
+            console.log("drawpile red king to empty playpile");
             return {
               from: {
                 pile: "draw",
@@ -614,7 +623,10 @@ class Game {
            }
          }
        }
-       if (viableKingMove) return viableKingMove;
+       if (viableKingMove){ 
+         console.log("playpile king to empty playpile");
+        return viableKingMove;
+      }
      }
    }
 
@@ -851,7 +863,7 @@ switch (move[0]) {
 if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
 */
-let i = 0;
+/* let i = 0;
 let gamesWon = 0;
 while(i<2000){
   let numMoves = 0;
@@ -872,3 +884,24 @@ while(i<2000){
   i++;
   console.log("Games won "+(gamesWon/i)*100+" %. Total games "+ i +". Total games won = "+gamesWon);
 }
+ */
+
+const g = new Game()
+let drawShift = 0;
+g.printStatus();
+
+while (g.gameOver === false) {
+  const move = g.suggestMove()
+  if (move) {
+    g.doMove(move)
+    if (move.from.pile === "draw" && move.to.pile === "draw") {
+      drawShift++;
+      console.log(`The draw pile has been shifted ${drawShift} time(s) in a row.`)
+    } else drawShift = 0;
+    g.printStatus()
+  } else g.gameOver = true
+  if (g.isGameWon()) g.gameOver = true
+}
+
+if (g.isGameWon()) console.log(`Congratulations, you won!`);
+else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
