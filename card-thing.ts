@@ -1,5 +1,3 @@
-import * as read from "readline-sync";
-
 const suits = <const>["Hearts", "Spades", "Clubs", "Diamonds"];
 type Suit = typeof suits[number];
 const values = <const>[
@@ -162,9 +160,11 @@ class FoundationPile extends Pile {
 
 class PlayPile extends Pile {
   public canAdd = (card: Card) =>
-    (this.top === null && card.value === "King") ||
-    (isSuitOpposite(this.top?.suit, card.suit) &&
-      isValueNextOnPlay(this.top?.value, card.value));
+    ((this.top === null && card.value === "King") ||
+      (this.top &&
+        isSuitOpposite(this.top!.suit, card.suit) &&
+        isValueNextOnPlay(this.top!.value, card.value))) ??
+    false;
 }
 
 class DrawPile extends Pile {
@@ -242,7 +242,7 @@ class Game {
     // Now we put da cardz in da play zone
     for (const [index, pile] of this._playPiles.entries()) {
       pile.fillPile(shuffld.splice(0, index + 1));
-      pile.top.visible = true;
+      if (pile.top) pile.top.visible = true;
     }
     // And da rest in da draw
     for (const card of shuffld) {
@@ -310,7 +310,7 @@ class Game {
       return;
     }
     if (amount > 1) {
-      const cards = fromPile.removeSeveral(amount);
+      const cards = fromPile.removeSeveral(amount) ?? [];
       if (!toPile.canAdd(cards[0]))
         throw new Error(
           `Illegal move, pile for move ${JSON.stringify({
@@ -331,15 +331,19 @@ class Game {
       ); */ // Removed for testing purposes
     } else {
       const card = fromPile.removeTop();
-      if (!toPile.canAdd(card))
-        throw new Error(
-          //fik dette error
-          `Illegal move, pile for move ${JSON.stringify({
-            from,
-            to,
-          })} cannot recive card ${card.toString()}, stack is currently ${toPile.toString()}`
-        );
-      toPile.add(card);
+      if (card) {
+        if (!toPile.canAdd(card))
+          throw new Error(
+            //fik dette error
+            `Illegal move, pile for move ${JSON.stringify({
+              from,
+              to,
+            })} cannot recive card ${
+              card?.toString() ?? "No Card"
+            }, stack is currently ${toPile.toString()}`
+          );
+        toPile.add(card);
+      }
       /* console.log(
         `Moving ${card.toString()} from pile: ${from.pile} ${
           from.index + 1
@@ -362,7 +366,7 @@ class Game {
     return false;
   }
 
-  public suggestMove(): Move {
+  public suggestMove(): Move | null {
     // Strategy taken from https://www.bvssolitaire.com/rules/klondike-solitaire-strategy.htm
 
     // console.log("Choosing move...\n"); // Removed for testing purposes
@@ -412,8 +416,8 @@ class Game {
     }
 
     // Tip 5: Move King from play pile to empty play pile
-    let hiddenCardsBehindKing: number = null;
-    let viableKingMove: Move = null;
+    let hiddenCardsBehindKing: number | null = null;
+    let viableKingMove: Move | null = null;
 
     for (const [targetIndex, targetPile] of this._playPiles.entries()) {
       if (targetPile.empty) {
@@ -468,8 +472,8 @@ class Game {
     }
 
     // Tip 3: Expose hidden cards from the play pile with the most hidden cards
-    let hiddenCards: number = null;
-    let viableMove: Move = null;
+    let hiddenCards: number | null = null;
+    let viableMove: Move | null = null;
 
     for (const [index, pile] of this._playPiles.entries()) {
       if (!pile.empty) {
@@ -674,7 +678,6 @@ if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
  */
 
- 
 // PLAY SEVERAL GAMES AUTOMATICALLY:
 let i = 0;
 let gamesWon = 0;
@@ -707,5 +710,9 @@ while (i < 10000) {
   i++;
 }
 console.log(
-  `\n${gamesWon} games won out of ${i} played (${(gamesWon / i) * 100} %).\nAn average of ${Math.round(totalMovesFromGamesWon / gamesWon)} moves made in games won.\n`
+  `\n${gamesWon} games won out of ${i} played (${
+    (gamesWon / i) * 100
+  } %).\nAn average of ${Math.round(
+    totalMovesFromGamesWon / gamesWon
+  )} moves made in games won.\n`
 );
