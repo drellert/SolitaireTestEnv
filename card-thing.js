@@ -857,9 +857,10 @@ while (g.gameOver === false) {
 if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
  */
-// PLAY SEVERAL GAMES AUTOMATICALLY
+// PLAY SEVERAL GAMES AUTOMATICALLY:
 var i = 0;
 var gamesWon = 0;
+var totalMovesFromGamesWon = 0;
 while (i < 1000) {
     var g = new Game();
     var numMoves = 0;
@@ -884,6 +885,7 @@ while (i < 1000) {
             if (g.isGameWon()) {
                 g.gameOver = true;
                 gamesWon++;
+                totalMovesFromGamesWon += numMoves;
             }
         }
     }
@@ -891,5 +893,5 @@ while (i < 1000) {
     console.log("Game #" + (i + 1) + " " + winLoseString + " " + numMoves + " moves made.");
     i++;
 }
-console.log(gamesWon + " games won out of " + i + " played (" + (gamesWon / i) * 100 + " %).");
+console.log("\n" + gamesWon + " games won out of " + i + " played (" + (gamesWon / i) * 100 + " %).\nAn average of " + Math.round(totalMovesFromGamesWon / gamesWon) + " moves made in games won.\n");
 //# sourceMappingURL=card-thing.js.map

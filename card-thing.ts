@@ -306,7 +306,7 @@ class Game {
     //If both the draw pile is set as both the from and to piles, the draw pile is shifted
     if (fromPile instanceof DrawPile && toPile instanceof DrawPile) {
       this.drawPile.shift();
-      //console.log(`Shifting draw pile.`);
+      //console.log(`Shifting draw pile.`); // Removed for testing purposes
       return;
     }
     if (amount > 1) {
@@ -328,7 +328,7 @@ class Game {
           .reduce((pV, v) => `${pV} ${v}`)} from pile: ${from.pile} ${
           from.index + 1
         }, to pile: ${to.pile} ${to.index + 1}.`
-      ); */
+      ); */ // Removed for testing purposes
     } else {
       const card = fromPile.removeTop();
       if (!toPile.canAdd(card))
@@ -344,7 +344,7 @@ class Game {
         `Moving ${card.toString()} from pile: ${from.pile} ${
           from.index + 1
         }, to pile: ${to.pile} ${to.index + 1}.`
-      ); */
+      ); */ // Removed for testing purposes
     }
     //gav fejl
     if (fromPile.top && !fromPile.top.visible) fromPile.top.visible = true;
@@ -364,7 +364,9 @@ class Game {
 
   public suggestMove(): Move {
     // Strategy taken from https://www.bvssolitaire.com/rules/klondike-solitaire-strategy.htm
-    // console.log("Choosing move...\n");
+
+    // console.log("Choosing move...\n"); // Removed for testing purposes
+
     // Tip 1: We assume that a card from the draw pile is always turned up, as long as the
     //        drawpile isn't empty.
 
@@ -584,7 +586,7 @@ class Game {
     }
 
     //No moves possible
-    console.log("No move was possible");
+    //console.log("No move was possible"); // Removed for testing purposes
     return null;
   }
 
@@ -676,6 +678,7 @@ else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
 // PLAY SEVERAL GAMES AUTOMATICALLY:
 let i = 0;
 let gamesWon = 0;
+let totalMovesFromGamesWon = 0;
 while (i < 1000) {
   const g = new Game();
   let numMoves = 0;
@@ -695,6 +698,7 @@ while (i < 1000) {
       if (g.isGameWon()) {
         g.gameOver = true;
         gamesWon++;
+        totalMovesFromGamesWon += numMoves;
       }
     }
   }
@@ -703,5 +707,5 @@ while (i < 1000) {
   i++;
 }
 console.log(
-  `${gamesWon} games won out of ${i} played (${(gamesWon / i) * 100} %).`
+  `\n${gamesWon} games won out of ${i} played (${(gamesWon / i) * 100} %).\nAn average of ${Math.round(totalMovesFromGamesWon / gamesWon)} moves made in games won.\n`
 );
