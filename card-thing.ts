@@ -222,16 +222,17 @@ export interface Move {
 }
 
 class Game {
-  private _drawPile = new DrawPile();
-  private _foundationPiles = Array(4)
-    .fill(null)
-    .map(() => new FoundationPile());
-  private _playPiles = Array(7)
-    .fill(null)
-    .map(() => new PlayPile());
   private _gameOver = false;
 
-  constructor() {
+  constructor(
+    private _drawPile = new DrawPile(),
+    private _foundationPiles = Array(4)
+      .fill(null)
+      .map(() => new FoundationPile()),
+    private _playPiles = Array(7)
+      .fill(null)
+      .map(() => new PlayPile())
+  ) {
     const allCards: Card[] = [];
     for (const suit of suits) {
       for (const value of values) {
