@@ -683,7 +683,7 @@ else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
 let i = 0;
 let gamesWon = 0;
 let totalMovesFromGamesWon = 0;
-while (i < 10000) {
+while (i < 2000) {
   const g = new Game();
   let numMoves = 0;
   let drawShift = 0;

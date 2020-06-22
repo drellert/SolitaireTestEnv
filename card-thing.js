@@ -216,12 +216,10 @@ var PlayPile = /** @class */ (function (_super) {
     __extends(PlayPile, _super);
     function PlayPile() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.canAdd = function (card) {
-            var _a, _b;
-            return (_this.top === null && card.value === "King") ||
-                (isSuitOpposite((_a = _this.top) === null || _a === void 0 ? void 0 : _a.suit, card.suit) &&
-                    isValueNextOnPlay((_b = _this.top) === null || _b === void 0 ? void 0 : _b.value, card.value));
-        };
+        _this.canAdd = function (card) { var _a; return (_a = ((_this.top === null && card.value === "King") ||
+            (_this.top &&
+                isSuitOpposite(_this.top.suit, card.suit) &&
+                isValueNextOnPlay(_this.top.value, card.value)))) !== null && _a !== void 0 ? _a : false; };
         return _this;
     }
     return PlayPile;
@@ -269,16 +267,19 @@ function shuffle(array) {
     return array;
 }
 var Game = /** @class */ (function () {
-    function Game() {
+    function Game(_drawPile, _foundationPiles, _playPiles) {
         var e_1, _a, e_2, _b, e_3, _c, e_4, _d;
         var _this = this;
-        this._drawPile = new DrawPile();
-        this._foundationPiles = Array(4)
+        if (_drawPile === void 0) { _drawPile = new DrawPile(); }
+        if (_foundationPiles === void 0) { _foundationPiles = Array(4)
             .fill(null)
-            .map(function () { return new FoundationPile(); });
-        this._playPiles = Array(7)
+            .map(function () { return new FoundationPile(); }); }
+        if (_playPiles === void 0) { _playPiles = Array(7)
             .fill(null)
-            .map(function () { return new PlayPile(); });
+            .map(function () { return new PlayPile(); }); }
+        this._drawPile = _drawPile;
+        this._foundationPiles = _foundationPiles;
+        this._playPiles = _playPiles;
         this._gameOver = false;
         this.getPile = function (_a) {
             var pile = _a.pile, index = _a.index;
@@ -323,7 +324,8 @@ var Game = /** @class */ (function () {
             for (var _e = __values(this._playPiles.entries()), _f = _e.next(); !_f.done; _f = _e.next()) {
                 var _g = __read(_f.value, 2), index = _g[0], pile = _g[1];
                 pile.fillPile(shuffld.splice(0, index + 1));
-                pile.top.visible = true;
+                if (pile.top)
+                    pile.top.visible = true;
             }
         }
         catch (e_3_1) { e_3 = { error: e_3_1 }; }
@@ -390,8 +392,9 @@ var Game = /** @class */ (function () {
     };
     Game.prototype.doMove = function (_a) {
         var _this = this;
-        var from = _a.from, to = _a.to, _b = _a.amount, amount = _b === void 0 ? 1 : _b;
-        var _c = __read([from, to].map(function (m) { return _this.getPile(m); }), 2), fromPile = _c[0], toPile = _c[1];
+        var _b, _c;
+        var from = _a.from, to = _a.to, _d = _a.amount, amount = _d === void 0 ? 1 : _d;
+        var _e = __read([from, to].map(function (m) { return _this.getPile(m); }), 2), fromPile = _e[0], toPile = _e[1];
         if (!fromPile || !toPile)
             throw new Error("Could not find pile for move " + JSON.stringify({
                 from: from,
@@ -404,7 +407,7 @@ var Game = /** @class */ (function () {
             return;
         }
         if (amount > 1) {
-            var cards = fromPile.removeSeveral(amount);
+            var cards = (_b = fromPile.removeSeveral(amount)) !== null && _b !== void 0 ? _b : [];
             if (!toPile.canAdd(cards[0]))
                 throw new Error("Illegal move, pile for move " + JSON.stringify({
                     from: from,
@@ -423,14 +426,16 @@ var Game = /** @class */ (function () {
         }
         else {
             var card = fromPile.removeTop();
-            if (!toPile.canAdd(card))
-                throw new Error(
-                //fik dette error
-                "Illegal move, pile for move " + JSON.stringify({
-                    from: from,
-                    to: to,
-                }) + " cannot recive card " + card.toString() + ", stack is currently " + toPile.toString());
-            toPile.add(card);
+            if (card) {
+                if (!toPile.canAdd(card))
+                    throw new Error(
+                    //fik dette error
+                    "Illegal move, pile for move " + JSON.stringify({
+                        from: from,
+                        to: to,
+                    }) + " cannot recive card " + ((_c = card === null || card === void 0 ? void 0 : card.toString()) !== null && _c !== void 0 ? _c : "No Card") + ", stack is currently " + toPile.toString());
+                toPile.add(card);
+            }
             /* console.log(
               `Moving ${card.toString()} from pile: ${from.pile} ${
                 from.index + 1
@@ -861,7 +866,7 @@ else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
 var i = 0;
 var gamesWon = 0;
 var totalMovesFromGamesWon = 0;
-while (i < 10000) {
+while (i < 2000) {
     var g = new Game();
     var numMoves = 0;
     var drawShift = 0;
