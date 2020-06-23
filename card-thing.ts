@@ -677,13 +677,14 @@ while (g.gameOver === false) {
 
 if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
- */
+*/
 
 // PLAY SEVERAL GAMES AUTOMATICALLY:
+console.time("Klondike test");
 let i = 0;
 let gamesWon = 0;
 let totalMovesFromGamesWon = 0;
-while (i < 2000) {
+while (i < 10000) {
   const g = new Game();
   let numMoves = 0;
   let drawShift = 0;
@@ -710,6 +711,8 @@ while (i < 2000) {
   console.log(`Game #${i + 1} ${winLoseString} ${numMoves} moves made.`);
   i++;
 }
+console.log(`\n`);
+console.timeEnd("Klondike test");
 console.log(
   `\n${gamesWon} games won out of ${i} played (${
     (gamesWon / i) * 100

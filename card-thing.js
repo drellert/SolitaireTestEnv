@@ -861,12 +861,13 @@ while (g.gameOver === false) {
 
 if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
- */
+*/
 // PLAY SEVERAL GAMES AUTOMATICALLY:
+console.time("Klondike test");
 var i = 0;
 var gamesWon = 0;
 var totalMovesFromGamesWon = 0;
-while (i < 2000) {
+while (i < 10000) {
     var g = new Game();
     var numMoves = 0;
     var drawShift = 0;
@@ -898,5 +899,7 @@ while (i < 2000) {
     console.log("Game #" + (i + 1) + " " + winLoseString + " " + numMoves + " moves made.");
     i++;
 }
+console.log("\n");
+console.timeEnd("Klondike test");
 console.log("\n" + gamesWon + " games won out of " + i + " played (" + (gamesWon / i) * 100 + " %).\nAn average of " + Math.round(totalMovesFromGamesWon / gamesWon) + " moves made in games won.\n");
 //# sourceMappingURL=card-thing.js.map
