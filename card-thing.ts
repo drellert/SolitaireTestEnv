@@ -307,7 +307,7 @@ class Game {
     //If both the draw pile is set as both the from and to piles, the draw pile is shifted
     if (fromPile instanceof DrawPile && toPile instanceof DrawPile) {
       this.drawPile.shift();
-      // console.log(`Shifting draw pile.`); // Removed for testing purposes
+      console.log(`Shifting draw pile.`); // Removed for testing purposes
       return;
     }
     if (amount > 1) {
@@ -323,13 +323,13 @@ class Game {
                     , stack is currently ${toPile.toString()}`
         );
       toPile.addSeveral(cards);
-      /* console.log(
+      console.log(
         `Moving ${cards
           .map((c) => c.toString())
           .reduce((pV, v) => `${pV} ${v}`)} from pile: ${from.pile} ${
           from.index + 1
         }, to pile: ${to.pile} ${to.index + 1}.`
-      ); */ // Removed for testing purposes
+      ); // Removed for testing purposes
     } else {
       const card = fromPile.removeTop();
       if (card) {
@@ -344,14 +344,13 @@ class Game {
             }, stack is currently ${toPile.toString()}`
           );
         toPile.add(card);
+        console.log(
+          `Moving ${card.toString()} from pile: ${from.pile} ${
+            from.index + 1
+          }, to pile: ${to.pile} ${to.index + 1}.`
+        ); // Removed for testing purposes
       }
-      /* console.log(
-        `Moving ${card.toString()} from pile: ${from.pile} ${
-          from.index + 1
-        }, to pile: ${to.pile} ${to.index + 1}.`
-      ); */ // Removed for testing purposes
     }
-    //gav fejl
     if (fromPile.top && !fromPile.top.visible) fromPile.top.visible = true;
   }
 
@@ -370,7 +369,7 @@ class Game {
   public suggestMove(): Move | null {
     // Strategy taken from https://www.bvssolitaire.com/rules/klondike-solitaire-strategy.htm
 
-    // console.log("Choosing move...\n"); // Removed for testing purposes
+    console.log("Choosing move...\n"); // Removed for testing purposes
 
     // Tip 1: We assume that a card from the draw pile is always turned up, as long as the
     //        drawpile isn't empty.
@@ -607,6 +606,9 @@ class Game {
   }
 }
 
+export const wait = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 const moveString = `Type your desired move:
                     \n - \'SD\': Shift drawpile
                     \n - \'M x y\': Move card from x to y
@@ -658,33 +660,43 @@ else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
 
 // PLAY AUTOMATICALLY WITH SUGGESTED MOVES:
 /* 
-const g = new Game()
-let drawShift = 0;
-g.printStatus();
+const test = async () => {
+  const g = new Game();
+  let drawShift = 0;
+  g.printStatus();
+  while (g.gameOver === false) {
+    await wait(1000);
+    if (drawShift > 24) {
+      g.gameOver = true;
+    } else {
+      const move = g.suggestMove();
+      if (move) {
+        g.doMove(move);
+        if (move.from.pile === "draw" && move.to.pile === "draw") {
+          drawShift++;
+          console.log(
+            `The draw pile has been shifted ${drawShift} time(s) in a row.`
+          );
+        } else drawShift = 0;
+        g.printStatus();
+      } else g.gameOver = true;
+      if (g.isGameWon()) g.gameOver = true;
+    }
+  }
 
-while (g.gameOver === false) {
-  const move = g.suggestMove()
-  if (move) {
-    g.doMove(move)
-    if (move.from.pile === "draw" && move.to.pile === "draw") {
-      drawShift++;
-      console.log(`The draw pile has been shifted ${drawShift} time(s) in a row.`)
-    } else drawShift = 0;
-    g.printStatus()
-  } else g.gameOver = true
-  if (g.isGameWon()) g.gameOver = true
-}
+  if (g.isGameWon()) console.log(`Congratulations, you won!`);
+  else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
+};
 
-if (g.isGameWon()) console.log(`Congratulations, you won!`);
-else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
-*/
+test(); */
+
 
 // PLAY SEVERAL GAMES AUTOMATICALLY:
-console.time("Klondike test");
+/* console.time("Klondike test");
 let i = 0;
 let gamesWon = 0;
 let totalMovesFromGamesWon = 0;
-while (i < 10000) {
+while (i < 1000) {
   const g = new Game();
   let numMoves = 0;
   let drawShift = 0;
@@ -719,4 +731,4 @@ console.log(
   } %).\nAn average of ${Math.round(
     totalMovesFromGamesWon / gamesWon
   )} moves made in games won.\n`
-);
+); */

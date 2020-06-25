@@ -12,6 +12,42 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 var __values = (this && this.__values) || function(o) {
     var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
@@ -40,6 +76,7 @@ var __read = (this && this.__read) || function (o, n) {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.wait = void 0;
 var suits = ["Hearts", "Spades", "Clubs", "Diamonds"];
 var values = [
     "King",
@@ -157,8 +194,8 @@ var Pile = /** @class */ (function () {
         this.removeSeveral = function (numOfCards) {
             if (numOfCards > _this.cards.length)
                 return;
-            for (var i_1 = 1; i_1 <= numOfCards; i_1++) {
-                if (!_this.cards[_this.cards.length - i_1].visible)
+            for (var i = 1; i <= numOfCards; i++) {
+                if (!_this.cards[_this.cards.length - i].visible)
                     return;
             }
             return _this.cards.splice(-numOfCards);
@@ -403,7 +440,7 @@ var Game = /** @class */ (function () {
         //If both the draw pile is set as both the from and to piles, the draw pile is shifted
         if (fromPile instanceof DrawPile && toPile instanceof DrawPile) {
             this.drawPile.shift();
-            // console.log(`Shifting draw pile.`); // Removed for testing purposes
+            console.log("Shifting draw pile."); // Removed for testing purposes
             return;
         }
         if (amount > 1) {
@@ -416,13 +453,9 @@ var Game = /** @class */ (function () {
                     .map(function (c) { return c.toString(); })
                     .reduce(function (pV, v) { return pV + " " + v; }) + "\n                    , stack is currently " + toPile.toString());
             toPile.addSeveral(cards);
-            /* console.log(
-              `Moving ${cards
-                .map((c) => c.toString())
-                .reduce((pV, v) => `${pV} ${v}`)} from pile: ${from.pile} ${
-                from.index + 1
-              }, to pile: ${to.pile} ${to.index + 1}.`
-            ); */ // Removed for testing purposes
+            console.log("Moving " + cards
+                .map(function (c) { return c.toString(); })
+                .reduce(function (pV, v) { return pV + " " + v; }) + " from pile: " + from.pile + " " + (from.index + 1) + ", to pile: " + to.pile + " " + (to.index + 1) + "."); // Removed for testing purposes
         }
         else {
             var card = fromPile.removeTop();
@@ -435,14 +468,9 @@ var Game = /** @class */ (function () {
                         to: to,
                     }) + " cannot recive card " + ((_c = card === null || card === void 0 ? void 0 : card.toString()) !== null && _c !== void 0 ? _c : "No Card") + ", stack is currently " + toPile.toString());
                 toPile.add(card);
+                console.log("Moving " + card.toString() + " from pile: " + from.pile + " " + (from.index + 1) + ", to pile: " + to.pile + " " + (to.index + 1) + "."); // Removed for testing purposes
             }
-            /* console.log(
-              `Moving ${card.toString()} from pile: ${from.pile} ${
-                from.index + 1
-              }, to pile: ${to.pile} ${to.index + 1}.`
-            ); */ // Removed for testing purposes
         }
-        //gav fejl
         if (fromPile.top && !fromPile.top.visible)
             fromPile.top.visible = true;
     };
@@ -474,8 +502,8 @@ var Game = /** @class */ (function () {
         // Strategy taken from https://www.bvssolitaire.com/rules/klondike-solitaire-strategy.htm
         var e_6, _a, e_7, _b, e_8, _c, e_9, _d, e_10, _e, e_11, _f, e_12, _g, e_13, _h, e_14, _j, e_15, _k, e_16, _l;
         var _m, _o, _p, _q, _r;
+        console.log("Choosing move...\n"); // Removed for testing purposes
         try {
-            // console.log("Choosing move...\n"); // Removed for testing purposes
             // Tip 1: We assume that a card from the draw pile is always turned up, as long as the
             //        drawpile isn't empty.
             // Tip 2A: Move available cards (Aces and Deuces) from play pile to foundation pile
@@ -799,6 +827,9 @@ var Game = /** @class */ (function () {
     };
     return Game;
 }());
+exports.wait = function (ms) {
+    return new Promise(function (resolve) { return setTimeout(resolve, ms); });
+};
 var moveString = "Type your desired move:\n                    \n - 'SD': Shift drawpile\n                    \n - 'M x y': Move card from x to y\n                    \n - 'X': Exit game\n                    \n\nPiles should be named as follows:\n                    \n'draw+' for the draw pile.\n                    \n'play+' followed by a number 1-7 for the seven play piles. If you want to move several cards, add the number of cards to the end of your move.\n                    \n'foundation+' followed by a number 1-4 for the four foundation piles.\n";
 // PLAY MANUALLY:
 /*
@@ -841,65 +872,90 @@ if (g.isGameWon()) console.log(`Congratulations, you won!`);
 else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
 */
 // PLAY AUTOMATICALLY WITH SUGGESTED MOVES:
-/*
-const g = new Game()
-let drawShift = 0;
-g.printStatus();
-
-while (g.gameOver === false) {
-  const move = g.suggestMove()
-  if (move) {
-    g.doMove(move)
-    if (move.from.pile === "draw" && move.to.pile === "draw") {
-      drawShift++;
-      console.log(`The draw pile has been shifted ${drawShift} time(s) in a row.`)
-    } else drawShift = 0;
-    g.printStatus()
-  } else g.gameOver = true
-  if (g.isGameWon()) g.gameOver = true
-}
-
-if (g.isGameWon()) console.log(`Congratulations, you won!`);
-else if (!g.isGameWon()) console.log(`Dumbass, you lost.`);
-*/
-// PLAY SEVERAL GAMES AUTOMATICALLY:
-console.time("Klondike test");
-var i = 0;
-var gamesWon = 0;
-var totalMovesFromGamesWon = 0;
-while (i < 10000) {
-    var g = new Game();
-    var numMoves = 0;
-    var drawShift = 0;
-    while (!g.gameOver) {
-        if (drawShift > 24) {
-            g.gameOver = true;
-        }
-        else {
-            var move = g.suggestMove();
-            if (move !== null) {
-                g.doMove(move);
-                numMoves++;
-                if (move.from.pile === "draw" && move.to.pile === "draw") {
-                    drawShift++;
+var test = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var g, drawShift, move;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                g = new Game();
+                drawShift = 0;
+                g.printStatus();
+                _a.label = 1;
+            case 1:
+                if (!(g.gameOver === false)) return [3 /*break*/, 3];
+                return [4 /*yield*/, exports.wait(1000)];
+            case 2:
+                _a.sent();
+                if (drawShift > 24) {
+                    g.gameOver = true;
                 }
-                else
-                    drawShift = 0;
-            }
-            else
-                g.gameOver = true;
-            if (g.isGameWon()) {
-                g.gameOver = true;
-                gamesWon++;
-                totalMovesFromGamesWon += numMoves;
-            }
+                else {
+                    move = g.suggestMove();
+                    if (move) {
+                        g.doMove(move);
+                        if (move.from.pile === "draw" && move.to.pile === "draw") {
+                            drawShift++;
+                            console.log("The draw pile has been shifted " + drawShift + " time(s) in a row.");
+                        }
+                        else
+                            drawShift = 0;
+                        g.printStatus();
+                    }
+                    else
+                        g.gameOver = true;
+                    if (g.isGameWon())
+                        g.gameOver = true;
+                }
+                return [3 /*break*/, 1];
+            case 3:
+                if (g.isGameWon())
+                    console.log("Congratulations, you won!");
+                else if (!g.isGameWon())
+                    console.log("Dumbass, you lost.");
+                return [2 /*return*/];
         }
+    });
+}); };
+test();
+// PLAY SEVERAL GAMES AUTOMATICALLY:
+/* console.time("Klondike test");
+let i = 0;
+let gamesWon = 0;
+let totalMovesFromGamesWon = 0;
+while (i < 1000) {
+  const g = new Game();
+  let numMoves = 0;
+  let drawShift = 0;
+  while (!g.gameOver) {
+    if (drawShift > 24) {
+      g.gameOver = true;
+    } else {
+      const move = g.suggestMove();
+      if (move !== null) {
+        g.doMove(move);
+        numMoves++;
+        if (move.from.pile === "draw" && move.to.pile === "draw") {
+          drawShift++;
+        } else drawShift = 0;
+      } else g.gameOver = true;
+      if (g.isGameWon()) {
+        g.gameOver = true;
+        gamesWon++;
+        totalMovesFromGamesWon += numMoves;
+      }
     }
-    var winLoseString = g.isGameWon() ? "won!" : "lost.";
-    console.log("Game #" + (i + 1) + " " + winLoseString + " " + numMoves + " moves made.");
-    i++;
+  }
+  const winLoseString = g.isGameWon() ? "won!" : "lost.";
+  console.log(`Game #${i + 1} ${winLoseString} ${numMoves} moves made.`);
+  i++;
 }
-console.log("\n");
+console.log(`\n`);
 console.timeEnd("Klondike test");
-console.log("\n" + gamesWon + " games won out of " + i + " played (" + (gamesWon / i) * 100 + " %).\nAn average of " + Math.round(totalMovesFromGamesWon / gamesWon) + " moves made in games won.\n");
+console.log(
+  `\n${gamesWon} games won out of ${i} played (${
+    (gamesWon / i) * 100
+  } %).\nAn average of ${Math.round(
+    totalMovesFromGamesWon / gamesWon
+  )} moves made in games won.\n`
+); */
 //# sourceMappingURL=card-thing.js.map
